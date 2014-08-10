@@ -12,6 +12,10 @@ module DocxTemplater
 
     def render(document)
       document.force_encoding(Encoding::UTF_8) if document.respond_to?(:force_encoding)
+      xml = Nokogiri::XML(document)
+      # Lookup replacement to perform
+      key_struct = "^\$[.*]\$$"
+      xml.xpath("//w:tr[contains(., key_struct)]", xml.root.namespaces)
       data.each do |key, value|
         if value.class == Array
           document = enter_multiple_values(document, key)
@@ -33,10 +37,24 @@ module DocxTemplater
       end
     end
 
-    def enter_multiple_values(document, key)
+    def dict
+      ['TAG', 'EACH', 'BEGIN_ROW', 'END_ROW']
+    end
+
+    def parse_row(xml, key, values)
+      # Manage Substitution of Rows
+      begin_row = "#BEGIN_ROW:#{key.to_s.upcase}#"
+      end_row = "#END_ROW:#{key.to_s.upcase}#"
+      begin_row_template = xml.xpath("//w:tr[contains(., '#{begin_row}')]", xml.root.namespaces).first
+      end_row_template = xml.xpath("//w:tr[contains(., '#{end_row}')]", xml.root.namespaces).first
+      DocxTemplater.log("begin_row_template: #{begin_row_template}")
+      DocxTemplater.log("end_row_template: #{end_row_template}")
+      fail "unmatched template markers: #{begin_row} nil: #{begin_row_template.nil?}, #{end_row} nil: #{end_row_template.nil?}. This could be because word broke up tags with it's own xml entries. See README." unless begin_row_template && end_row_template
+    end
+
+    def subst_row(xml, values)
       DocxTemplater.log("enter_multiple_values for: #{key}")
       # TODO: ideally we would not re-parse xml doc every time
-      xml = Nokogiri::XML(document)
 
       begin_row = "#BEGIN_ROW:#{key.to_s.upcase}#"
       end_row = "#END_ROW:#{key.to_s.upcase}#"
