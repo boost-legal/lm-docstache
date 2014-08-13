@@ -1,8 +1,14 @@
 # encoding: UTF-8
 
-# docx_converter -- Converts Word docx files into html or LaTeX via the kramdown syntax
-# Copyright (C) 2013 Red (E) Tools Ltd. (www.thebigrede.net)
+# docx_templater -- Converts Word docx files into html or LaTeX via the kramdown syntax
+# Copyright (C) 2014 pl0o0f (florent@cryph.net) and don't forget GPL
+#
+# This software has been inspired from:
+# = https://github.com/jawspeak/ruby-docx-templater
+# = https://github.com/michaelfranzl/docx_converter
 # 
+# It is a complete rewrite however but credits are credits and everybody should be thanked for their contribution
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
 # published by the Free Software Foundation, either version 3 of the
@@ -14,37 +20,35 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License
+# You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 module DocxTemplater
-  class Parser
+  class Replacer
     def initialize(options)
+      @data = options[:data]
       @output_dir = options[:output_dir]
       @docx_filepath = options[:inputfile]
       
-      @image_subdir_filesystem = options[:image_subdir_filesystem]
-      @image_subdir_kramdown = options[:image_subdir_kramdown]
-      
-      @relationships_hash = {}
-      
       @zipfile = Zip::ZipFile.new(@docx_filepath)
-      @out_xml = Nokogiri::XML::Document.new
     end
     
-    def parse
+    def replace
+      garbage = Array.new
       document_xml = unzip_read("word/document.xml")
       footnotes_xml = unzip_read("word/footnotes.xml")
       
       content = Nokogiri::XML(document_xml)
       footnotes = Nokogiri::XML(footnotes_xml)
-      
-      footnote_definitions = parse_footnotes(footnotes)
-      output_content = parse_content(content.elements.first)
+     
+      garbage += parse_content(content.elements)
+      garbage += parse_content(footnotes.elements)
+
+      garbage.map(&:unlink)
       
       return {
-        :content => output_content,
-        :footnote_definitions => footnote_definitions
+        :content => content,
+        :footnotes => footnotes
       }
     end
     
@@ -59,29 +63,6 @@ module DocxTemplater
       return contents
     end
     
-    def parse_relationships(relationships)
-      output = {}
-      relationships.children.first.children.each do |rel|
-        rel_id = rel.attributes["Id"].value
-        rel_target = rel.attributes["Target"].value
-        output[rel_id] = rel_target
-      end
-      return output
-    end
-    
-    def parse_footnotes(node)
-      output = {}
-      node.xpath("//w:footnote").each do |fnode|
-        footnote_number = fnode.attributes["id"].value
-        if ["-1", "0"].include?(footnote_number)
-          # Word outputs -1 and 0 as 'magic' footnotes
-          next
-        end
-        output[footnote_number] = parse_content(fnode).strip
-      end
-      retu output
-    end
-
     def expand_loop(nd, key, data)
       garbage = Array.new
       if !data.has_key?(key)
