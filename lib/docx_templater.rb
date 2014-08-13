@@ -1,3 +1,8 @@
+require 'nokogiri'
+require 'zip/zipfilesystem'
+require 'filemagic'
+
+
 module DocxTemplater
   module_function
 

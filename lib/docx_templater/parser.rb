@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-module DocxConverter
+module DocxTemplater
   class Parser
     def initialize(options)
       @output_dir = options[:output_dir]
@@ -29,6 +29,7 @@ module DocxConverter
       @relationships_hash = {}
       
       @zipfile = Zip::ZipFile.new(@docx_filepath)
+      @out_xml = Nokogiri::XML::Document.new
     end
     
     def parse
@@ -84,6 +85,8 @@ module DocxConverter
     def manage_loop(nd, key, depth, data)
       output = Array.new
 
+      init_node = nd
+
       if !/#END_ROW:#{key.to_s.upcase}#/.match(nd.text.to_s)
         case nd.text.to_s
         when /#BEGIN_ROW:(.+)#/
@@ -97,17 +100,24 @@ module DocxConverter
               new_data = data.merge(element)
               new_data.delete(key)
               puts "New #{key} is : #{new_data}"
-              @loop_rows = manage_loop(nd.next_sibling, key, depth, new_data)
-              output.append(@loop_rows)
+              node = manage_loop(nd.next_sibling, key, depth, new_data)
+
+              #Modify Document
+              init_node.add_next_sibling(node)
             end
           end
-          return output
+          return init_node.parent
         else
-          add = parse_content(nd, depth+1, data)
+          node = parse_content(nd, depth+1, data)
           output.append(add)
+          # Modify Document
+          nd.inner_html = node.inner_html
+
           nd = nd.next_sibling
+          return output
         end
       else
+        # Modify Document
         return output
       end
     end
@@ -131,7 +141,6 @@ module DocxConverter
         when "t"
           add = subst_content(nd, data)
         else
-          # recurse through those nodes as well
           add = parse_content(nd, depth, data)
         end
         output.append(add)
