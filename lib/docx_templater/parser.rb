@@ -79,89 +79,87 @@ module DocxTemplater
         end
         output[footnote_number] = parse_content(fnode).strip
       end
-      return output
+      retu output
     end
 
-    def manage_loop(nd, key, depth, data)
-      output = Array.new
-
-      init_node = nd
-
-      if !/#END_ROW:#{key.to_s.upcase}#/.match(nd.text.to_s)
-        case nd.text.to_s
-        when /#BEGIN_ROW:(.+)#/
-          puts "######### NEW LOOP ##########"
-          key = $1.downcase.to_sym
-          puts "Key is : #{key}\nData is : #{data}"
-
-          if data.has_key?(key)
-            data[key].each do |element|
-              new_data = data.dup
-              new_data = data.merge(element)
-              new_data.delete(key)
-              puts "New #{key} is : #{new_data}"
-              node = manage_loop(nd.next_sibling, key, depth, new_data)
-
-              #Modify Document
-              init_node.add_next_sibling(node)
+    def expand_loop(nd, key, data)
+      garbage = Array.new
+      if !data.has_key?(key)
+        end_row = nd
+        until /#END_ROW:#{key.upcase.to_s}#/.match(end_row.text.to_s)
+          garbage.append(end_row)
+          end_row = end_row.next
+        end
+        return garbage + [end_row]
+      elsif data[key].empty?
+        end_row = nd
+        until /#END_ROW:#{key.upcase.to_s}#/.match(end_row.text.to_s)
+          garbage.append(end_row)
+          end_row = end_row.next
+        end
+        return garbage + [end_row]
+      else
+        rows = Array.new
+        start_row = nd
+        end_row = nd.next
+        until /#END_ROW:#{key.upcase.to_s}#/.match(end_row.text.to_s)
+          rows.append(end_row)
+          end_row = end_row.next
+        end
+        garbage = [start_row, end_row]
+        data[key].each do |element|
+          rows.each do |nd| 
+            case nd.text.to_s
+            when /#BEGIN_ROW:([A-Z0-9_]+)#/
+              new_key = $1.downcase.to_sym
+              garbage += expand_loop(nd, new_key, element)
+            when /#END_ROW:([A-Z0-9_]+)#/
+              garbage += [nd]
+            else
+              garbage += [nd]
+              new_node = nd.dup
+              nd.add_next_sibling(new_node)
+              subst_content(new_node, element)
             end
           end
-          return init_node.parent
-        else
-          node = parse_content(nd, depth+1, data)
-          output.append(add)
-          # Modify Document
-          nd.inner_html = node.inner_html
-
-          nd = nd.next_sibling
-          return output
         end
-      else
-        # Modify Document
-        return output
+        return garbage.uniq
       end
     end
 
-    def parse_content(node, depth=0, data=@data)
-      output = []
-      depth += 1
-      children_count = node.children.length
-      i = 0
-      while i < children_count
-        nd = node.children[i]
+    def parse_content(elements, data=@data)
+      garbage = Array.new
+      elements.each do |nd|
         case nd.name
         when "tr"
           case nd.text.to_s
-          when /#BEGIN_ROW:(.+)#/
+          when /#BEGIN_ROW:([A-Z0-9_]+)#/
             key = $1.downcase.to_sym
-            add = manage_loop(nd, key, depth, data)
-          else
-            add = parse_content(nd, depth, data)
+            garbage += expand_loop(nd, key, data)
+          else # it's a normal table row
+            garbage += parse_content(nd.elements, data)
           end
-        when "t"
-          add = subst_content(nd, data)
-        else
-          add = parse_content(nd, depth, data)
+        when "t" # It's a leaf that contains data to replace
+          subst_content(nd, data) 
+        else # it's neither a leaf or a loop so let's process it
+          garbage += parse_content(nd.elements, data)
         end
-        output.append(add)
-        i += 1
       end
-      depth -= 1
-      return output
+      return garbage.uniq
     end
 
-    def subst_content(nd,data)
-      /\$(.+)\$/ =~ nd.text
-      if !$1.nil?
-        subst_key = $1.downcase.to_sym
-        if data.has_key?(subst_key)
-          inner = nd.inner_html
-          value = data[subst_key]
-          inner.gsub!("$#{subst_key.to_s.upcase}$", safe(value))
-          nd.inner_html = inner
+    def subst_content(nd, data)
+      inner = nd.inner_html
+      @keys = nd.text.scan(/\$([A-Z0-9_]+)\$/).map(&:first).map(&:downcase).map(&:to_sym)
+      @keys.each do |key|
+        if data.has_key?(key)
+          value = data[key]
+          inner.gsub!("$#{key.to_s.upcase}$", safe(value))
         end
       end
-      return nd
+      if !@keys.empty?
+        nd.inner_html = inner
+      end
     end
 
     def safe(text)
