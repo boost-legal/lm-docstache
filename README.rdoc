@@ -18,7 +18,8 @@ Inspired from [https://github.com/jawspeak/ruby-docx-templater] and [https://git
 * Render new docx files from the template, ex: `ruby render_docx_template.rb`. Look for a rendered_*.docx file.
 * Sample output with tests: `rake spec` (unit tests) `rake integration` (opens word)
 
-__MS WORD is painful__ You will probably need to extract and edit the xml template manually after creating in Word, to prepare the ruby script template with it. This is very fiddly / hacky. You can’t have Word’s ugly markup around the fields to template. It will try to break up fields with markup. Test the template, fixing it until the extracted word/document.xml as needed.
+__MS WORD is painful__ You will probably need to modify your docx document in word until such a time as all flags to replace are set properly within a single XML element. You can’t have Word’s split a string of characters across multiple xml elements in your template document.
+Test the template and keep fixing it until the fields are all set properly.
 
 I frequently use this workflow:
  - Cut string to replace out to notepad
