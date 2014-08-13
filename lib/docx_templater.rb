@@ -1,6 +1,5 @@
 require 'nokogiri'
 require 'zip/zipfilesystem'
-require 'filemagic'
 
 
 module DocxTemplater
@@ -12,5 +11,5 @@ module DocxTemplater
   end
 end
 
-require 'docx_templater/template_processor'
-require 'docx_templater/docx_creator'
+require 'docx_templater/parser'
+require 'docx_templater/docx_templater'
