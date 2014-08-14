@@ -24,30 +24,29 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 module DocxTemplater
-  class Replacer
+  class Render
     def initialize(options)
       @data = options[:data]
-      @output_dir = options[:output_dir]
-      @docx_filepath = options[:inputfile]
-      @out_filepath = options[:outfile]
+      @in_filepath = options[:inputfile]
+      @out_filepath = options[:outputfile]
       
-      @zipfile = Zip::ZipFile.new(@docx_filepath)
+      @zipfile = Zip::File.new(@in_filepath)
     end
     
-    def replace
-      garbage = Array.new
+    def render
+      @garbage = Array.new
       document_xml = unzip_read("word/document.xml")
       footnotes_xml = unzip_read("word/footnotes.xml")
       
-      content = Nokogiri::XML(document_xml)
-      footnotes = Nokogiri::XML(footnotes_xml)
+      @content = Nokogiri::XML(document_xml)
+      @footnotes = Nokogiri::XML(footnotes_xml)
      
-      garbage += parse_content(content.elements)
-      garbage += parse_content(footnotes.elements)
+      @garbage += parse_content(@content.elements)
+      @garbage += parse_content(@footnotes.elements)
 
-      garbage.map(&:unlink)
+      #@garbage.map(&:unlink)
      
-      zip_write(@out_filepath, content, footnotes) 
+      zip_write(@out_filepath, @content, @footnotes) 
     end
     
     private
@@ -63,17 +62,17 @@ module DocxTemplater
 
     def zip_write(zip_path, content, footnotes)
       buffer = Zip::OutputStream.write_buffer do |out|
-        @zip_file.entries.each do |e|
-          unless ['document.xml', 'footnotes.xml'].include?(e.name)
+        @zipfile.entries.each do |e|
+          unless ['word/document.xml', 'word/footnotes.xml'].include?(e.name)
             out.put_next_entry(e.name)
             out.write e.get_input_stream.read
           end
         end
 
-        out.put_next_entry('document.xml')
+        out.put_next_entry('word/document.xml')
         out.write content.to_xml(:indent => 0).gsub("\n","")
 
-        out.put_next_entry('footnotes.xml')
+        out.put_next_entry('word/footnotes.xml')
         out.write footnotes.to_xml(:indent => 0).gsub("\n","")
       end
 
@@ -86,14 +85,14 @@ module DocxTemplater
       if !data.has_key?(key)
         end_row = nd
         until /#END_ROW:#{key.upcase.to_s}#/.match(end_row.text.to_s)
-          garbage.append(end_row)
+          garbage << end_row
           end_row = end_row.next
         end
         return garbage + [end_row]
       elsif data[key].empty?
         end_row = nd
         until /#END_ROW:#{key.upcase.to_s}#/.match(end_row.text.to_s)
-          garbage.append(end_row)
+          garbage << end_row
           end_row = end_row.next
         end
         return garbage + [end_row]
@@ -102,7 +101,7 @@ module DocxTemplater
         start_row = nd
         end_row = nd.next
         until /#END_ROW:#{key.upcase.to_s}#/.match(end_row.text.to_s)
-          rows.append(end_row)
+          rows << end_row
           end_row = end_row.next
         end
         garbage = [start_row, end_row]
@@ -113,12 +112,12 @@ module DocxTemplater
               new_key = $1.downcase.to_sym
               garbage += expand_loop(nd, new_key, element)
             when /#END_ROW:([A-Z0-9_]+)#/
-              garbage += [nd]
+              garbage << nd
             else
-              garbage += [nd]
               new_node = nd.dup
               nd.add_next_sibling(new_node)
               subst_content(new_node, element)
+              garbage << nd
             end
           end
         end
@@ -149,14 +148,14 @@ module DocxTemplater
 
     def subst_content(nd, data)
       inner = nd.inner_html
-      @keys = nd.text.scan(/\$([A-Z0-9_]+)\$/).map(&:first).map(&:downcase).map(&:to_sym)
-      @keys.each do |key|
+      keys = nd.text.scan(/\$([A-Z0-9_]+)\$/).map(&:first).map(&:downcase).map(&:to_sym)
+      keys.each do |key|
         if data.has_key?(key)
           value = data[key]
           inner.gsub!("$#{key.to_s.upcase}$", safe(value))
         end
       end
-      if !@keys.empty?
+      if !keys.empty?
         nd.inner_html = inner
       end
     end

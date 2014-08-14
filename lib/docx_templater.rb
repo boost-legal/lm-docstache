@@ -1,15 +1,8 @@
 require 'nokogiri'
-require 'zip/zipfilesystem'
+require 'zip'
 
 
-module DocxTemplater
-  module_function
-
-  def log(str)
-    # braindead logging
-    puts str if ENV['DEBUG']
-  end
+dir = File.dirname(__FILE__)
+Dir[File.expand_path("#{dir}/docx_templater/*.rb")].uniq.each do |file|
+  require file
 end
-
-require 'docx_templater/parser'
-require 'docx_templater/docx_templater'
