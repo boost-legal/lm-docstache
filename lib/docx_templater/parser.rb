@@ -106,7 +106,9 @@ module DocxTemplater
         end_row = nd
         until /#END_ROW:#{key.upcase.to_s}#/.match(end_row.text.to_s)
           garbage << end_row
-          end_row = end_row.next
+          if !end_row.next.nil?
+            end_row = end_row.next
+          end
         end
         garbage << end_row
         garbage.map(&:unlink)
@@ -116,7 +118,9 @@ module DocxTemplater
         end_row = nd.next
         until /#END_ROW:#{key.upcase.to_s}#/.match(end_row.text.to_s)
           rows << end_row
-          end_row = end_row.next
+          if !end_row.next.nil?
+            end_row = end_row.next
+          end
         end
         garbage = [start_row, end_row]
         data[key].each do |element|
