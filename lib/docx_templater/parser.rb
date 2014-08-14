@@ -29,6 +29,7 @@ module DocxTemplater
       @data = options[:data]
       @output_dir = options[:output_dir]
       @docx_filepath = options[:inputfile]
+      @out_filepath = options[:outfile]
       
       @zipfile = Zip::ZipFile.new(@docx_filepath)
     end
@@ -45,11 +46,8 @@ module DocxTemplater
       garbage += parse_content(footnotes.elements)
 
       garbage.map(&:unlink)
-      
-      return {
-        :content => content,
-        :footnotes => footnotes
-      }
+     
+      zip_write(@out_filepath, content, footnotes) 
     end
     
     private
@@ -62,7 +60,27 @@ module DocxTemplater
       end
       return contents
     end
-    
+
+    def zip_write(zip_path, content, footnotes)
+      buffer = Zip::OutputStream.write_buffer do |out|
+        @zip_file.entries.each do |e|
+          unless ['document.xml', 'footnotes.xml'].include?(e.name)
+            out.put_next_entry(e.name)
+            out.write e.get_input_stream.read
+          end
+        end
+
+        out.put_next_entry('document.xml')
+        out.write content.to_xml(:indent => 0).gsub("\n","")
+
+        out.put_next_entry('footnotes.xml')
+        out.write footnotes.to_xml(:indent => 0).gsub("\n","")
+      end
+
+      File.open(zip_path, "w") {|f| f.write(buffer.string) }
+    end
+
+ 
     def expand_loop(nd, key, data)
       garbage = Array.new
       if !data.has_key?(key)
