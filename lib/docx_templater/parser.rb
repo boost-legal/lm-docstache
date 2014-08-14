@@ -31,19 +31,18 @@ module DocxTemplater
       @out_filepath = options[:outputfile]
       
       @zipfile = Zip::File.new(@in_filepath)
+      document_xml = unzip_read("word/document.xml")
+      footnotes_xml = unzip_read("word/footnotes.xml")
+
+      @content = Nokogiri::XML(document_xml)
+      @footnotes = Nokogiri::XML(footnotes_xml)
     end
     
     def render_file
-      document_xml = unzip_read("word/document.xml")
-      footnotes_xml = unzip_read("word/footnotes.xml")
-      
-      content = Nokogiri::XML(document_xml)
-      footnotes = Nokogiri::XML(footnotes_xml)
-     
-      parse_content(content.elements)
-      parse_content(footnotes.elements)
+      parse_content(@content.elements)
+      parse_content(@footnotes.elements)
     
-      buffer = zip_create(content, footnotes)
+      buffer = zip_create(@content, @footnotes)
       if File.open(@out_filepath, "w") {|f| f.write(buffer.string) }
         return @out_filepath.to_s
       else
@@ -52,17 +51,10 @@ module DocxTemplater
     end
 
     def render_stream
-      @garbage = Array.new
-      document_xml = unzip_read("word/document.xml")
-      footnotes_xml = unzip_read("word/footnotes.xml")
+      parse_content(@content.elements)
+      parse_content(@footnotes.elements)
 
-      content = Nokogiri::XML(document_xml)
-      footnotes = Nokogiri::XML(footnotes_xml)
-
-      parse_content(content.elements)
-      parse_content(footnotes.elements)
-
-      buffer = zip_create(content, footnotes)
+      buffer = zip_create(@content, @footnotes)
       buffer.rewind
       return buffer.sysread
     end
@@ -96,50 +88,67 @@ module DocxTemplater
 
       return buffer
     end
-
  
-    def expand_loop(nd, key, data)
-      garbage = Array.new
+    def parse_loop(nd, key, data)
       if !data.has_key?(key)
         nil
       elsif data[key].empty?
-        end_row = nd
-        until /#END_ROW:#{key.upcase.to_s}#/.match(end_row.text.to_s)
-          garbage << end_row
-          if !end_row.next.nil?
-            end_row = end_row.next
-          end
-        end
-        garbage << end_row
-        garbage.map(&:unlink)
+        remove_loop(nd, key)
       else
-        rows = Array.new
-        start_row = nd
-        end_row = nd.next
-        until /#END_ROW:#{key.upcase.to_s}#/.match(end_row.text.to_s)
-          rows << end_row
-          if !end_row.next.nil?
-            end_row = end_row.next
+        data_set = data[key]
+        rows = extract_loop_rows(nd, key)
+        puts "Rows found: #{rows.map(&:text)}"
+        expand_loop(nd, rows, data_set)
+      end
+    end
+
+    def expand_loop(begin_nd, rows, data_set)
+      data_set.each do |data_element|
+        rows.each do |nd|
+          case nd.text.to_s
+          when /#BEGIN_ROW:([A-Z0-9_]+)#/
+            new_key = $1.downcase.to_sym
+            parse_loop(nd, new_key, data_element)
+          else
+            new_node = nd.dup
+            nd.add_next_sibling(new_node)
+            parse_content(new_node.elements, data_element)
+            nd.unlink
           end
         end
-        garbage = [start_row, end_row]
-        data[key].each do |element|
-          rows.each do |nd| 
-            case nd.text.to_s
-            when /#BEGIN_ROW:([A-Z0-9_]+)#/
-              new_key = $1.downcase.to_sym
-              expand_loop(nd, new_key, element)
-            when /#END_ROW:([A-Z0-9_]+)#/
-              garbage << nd
-            else
-              new_node = nd.dup
-              nd.add_next_sibling(new_node)
-              subst_content(new_node, element)
-              garbage << nd
-            end
-          end
+      end
+      begin_nd.unlink
+    end
+
+    def extract_loop_rows(nd, key)
+      puts "Extracting Loops for #{key}"
+      if nd
+        case nd.text.to_s
+        when /#BEGIN_ROW:#{key.upcase.to_s}#/
+          return extract_loop_rows(nd.next, key)
+        when /#END_ROW:#{key.upcase.to_s}#/
+          nd.unlink
+          return []
+        else
+          puts "Adding #{nd.text} to rows"
+          return [nd] + extract_loop_rows(nd.next, key)
         end
-        garbage.map(&:unlink)
+      else
+        return []
+      end
+    end
+
+    def remove_loop(nd, key)
+      if nd
+        case nd.text.to_s
+        when /#END_ROW:#{key.upcase.to_s}#/
+          out = nd.next
+          nd.unlink
+        else
+          out = remove_loop(nd.next, key)
+          nd.unlink
+        end
+        return out
       end
     end
 
@@ -150,7 +159,7 @@ module DocxTemplater
           case nd.text.to_s
           when /#BEGIN_ROW:([A-Z0-9_]+)#/
             key = $1.downcase.to_sym
-            expand_loop(nd, key, data)
+            parse_loop(nd, key, data)
           else # it's a normal table row
             parse_content(nd.elements, data)
           end
