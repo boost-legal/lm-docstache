@@ -44,7 +44,7 @@ module DocxTemplater
       @garbage += parse_content(@content.elements)
       @garbage += parse_content(@footnotes.elements)
 
-      #@garbage.map(&:unlink)
+      @garbage.map(&:unlink)
      
       zip_write(@out_filepath, @content, @footnotes) 
     end
@@ -88,13 +88,15 @@ module DocxTemplater
           garbage << end_row
           end_row = end_row.next
         end
-        return garbage + [end_row]
+        puts "CASE NO KEY --> Key: #{key} Garbage: #{(garbage + [end_row]).map(&:text)}"
+        return [] #garbage + [end_row]
       elsif data[key].empty?
         end_row = nd
         until /#END_ROW:#{key.upcase.to_s}#/.match(end_row.text.to_s)
           garbage << end_row
           end_row = end_row.next
         end
+        puts "CASE EMPTY LIST --> Key: #{key} Garbage: #{(garbage + [end_row]).map(&:text)}"
         return garbage + [end_row]
       else
         rows = Array.new
@@ -118,9 +120,11 @@ module DocxTemplater
               nd.add_next_sibling(new_node)
               subst_content(new_node, element)
               garbage << nd
+              nd.unlink
             end
           end
         end
+        puts "CASE GO DEEP --> Key: #{key} Garbage: #{garbage.map(&:text)}"
         return garbage.uniq
       end
     end
