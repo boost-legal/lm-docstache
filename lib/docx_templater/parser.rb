@@ -83,20 +83,13 @@ module DocxTemplater
     def expand_loop(nd, key, data)
       garbage = Array.new
       if !data.has_key?(key)
-        end_row = nd
-        until /#END_ROW:#{key.upcase.to_s}#/.match(end_row.text.to_s)
-          garbage << end_row
-          end_row = end_row.next
-        end
-        puts "CASE NO KEY --> Key: #{key} Garbage: #{(garbage + [end_row]).map(&:text)}"
-        return [] #garbage + [end_row]
+        return []
       elsif data[key].empty?
         end_row = nd
         until /#END_ROW:#{key.upcase.to_s}#/.match(end_row.text.to_s)
           garbage << end_row
           end_row = end_row.next
         end
-        puts "CASE EMPTY LIST --> Key: #{key} Garbage: #{(garbage + [end_row]).map(&:text)}"
         return garbage + [end_row]
       else
         rows = Array.new
@@ -119,12 +112,10 @@ module DocxTemplater
               new_node = nd.dup
               nd.add_next_sibling(new_node)
               subst_content(new_node, element)
-              garbage << nd
               nd.unlink
             end
           end
         end
-        puts "CASE GO DEEP --> Key: #{key} Garbage: #{garbage.map(&:text)}"
         return garbage.uniq
       end
     end
