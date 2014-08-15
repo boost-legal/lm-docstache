@@ -96,32 +96,51 @@ module DocxTemplater
         remove_loop(nd, key)
       else
         data_set = data[key]
-        rows = extract_loop_rows(nd, key)
-        puts "Rows found: #{rows.map(&:text)}"
-        expand_loop(nd, rows, data_set)
+        puts "Extracting Loops for #{key}"
+        end_row = extract_end_row(nd.next, key)
+        puts "Data count is #{data_set.count}"
+        data_set.each do |data_element|
+          expand_loop(nd.next, end_row, data_element)
+        end
+        nd.unlink
       end
     end
 
-    def expand_loop(begin_nd, rows, data_set)
-      data_set.each do |data_element|
-        rows.each do |nd|
-          case nd.text.to_s
-          when /#BEGIN_ROW:([A-Z0-9_]+)#/
-            new_key = $1.downcase.to_sym
-            parse_loop(nd, new_key, data_element)
-          else
-            new_node = nd.dup
-            nd.add_next_sibling(new_node)
-            parse_content(new_node.elements, data_element)
-            nd.unlink
-          end
+    def extract_end_row(nd, key)
+      if nd
+        case nd.text.to_s
+        when /#END_ROW:#{key.upcase.to_s}#/
+          puts "Found End Row for #{key.upcase.to_s}"
+          puts "Row: #{nd.text.to_s}"
+          return nd
+        else
+          return extract_end_row(nd.next, key)
+        end
+      else
+        return nil
+      end
+    end
+
+    def expand_loop(nd, end_nd, data_element)
+      if nd
+        puts "Row processed: #{nd.text.to_s}"
+        puts "with data: #{data_element}"
+        case nd.text.to_s
+        when /#BEGIN_ROW:([A-Z0-9_]+)#/
+          new_key = $1.downcase.to_sym
+          parse_loop(nd, new_key, data_element)
+        when /#{end_nd.text.to_s}/
+        else
+          new_node = nd.dup
+          puts "Adding Row #{nd.text} to file"
+          end_nd.add_next_sibling(new_node)
+          parse_content(new_node.elements, data_element)
+          nd.unlink
         end
       end
-      begin_nd.unlink
     end
 
     def extract_loop_rows(nd, key)
-      puts "Extracting Loops for #{key}"
       if nd
         case nd.text.to_s
         when /#BEGIN_ROW:#{key.upcase.to_s}#/
@@ -130,7 +149,6 @@ module DocxTemplater
           nd.unlink
           return []
         else
-          puts "Adding #{nd.text} to rows"
           return [nd] + extract_loop_rows(nd.next, key)
         end
       else
@@ -177,6 +195,7 @@ module DocxTemplater
       keys.each do |key|
         if data.has_key?(key)
           value = data[key]
+          puts "Substituting $#{key.to_s.upcase}$ with #{value}"
           inner.gsub!("$#{key.to_s.upcase}$", safe(value))
         end
       end
