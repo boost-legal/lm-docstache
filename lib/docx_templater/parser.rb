@@ -36,12 +36,12 @@ module DocxTemplater
 
       @content = Nokogiri::XML(document_xml)
       @footnotes = Nokogiri::XML(footnotes_xml)
+
     end
     
     def render_file
-      parse_content(@content.elements)
-      parse_content(@footnotes.elements)
-    
+      process_content()
+ 
       buffer = zip_create(@content, @footnotes)
       if File.open(@out_filepath, "w") {|f| f.write(buffer.string) }
         return @out_filepath.to_s
@@ -51,8 +51,7 @@ module DocxTemplater
     end
 
     def render_stream
-      parse_content(@content.elements)
-      parse_content(@footnotes.elements)
+      process_content()
 
       buffer = zip_create(@content, @footnotes)
       buffer.rewind
@@ -60,7 +59,18 @@ module DocxTemplater
     end
  
     private
-    
+
+    def process_content()
+      parse_content(@content.elements)
+      parse_content(@footnotes.elements)
+
+      content_tr = @content.xpath('//w:tr')
+      footnote_tr = @footnotes.xpath('//w:tr')
+
+      cleanup_loop(content_tr)
+      cleanup_loop(footnote_tr)
+    end
+ 
     def unzip_read(zip_path)
       file = @zipfile.find_entry(zip_path)
       contents = ""
@@ -89,29 +99,11 @@ module DocxTemplater
       return buffer
     end
  
-    def parse_loop(nd, key, data)
-      if !data.has_key?(key)
-        nil
-      elsif data[key].empty?
-        remove_loop(nd, key)
-      else
-        data_set = data[key]
-        puts "Extracting Loops for #{key}"
-        end_row = extract_end_row(nd.next, key)
-        puts "Data count is #{data_set.count}"
-        data_set.each do |data_element|
-          expand_loop(nd.next, end_row, data_element)
-        end
-        nd.unlink
-      end
-    end
-
     def extract_end_row(nd, key)
-      if nd
+      if !nd.nil?
         case nd.text.to_s
         when /#END_ROW:#{key.upcase.to_s}#/
           puts "Found End Row for #{key.upcase.to_s}"
-          puts "Row: #{nd.text.to_s}"
           return nd
         else
           return extract_end_row(nd.next, key)
@@ -121,50 +113,60 @@ module DocxTemplater
       end
     end
 
-    def expand_loop(nd, end_nd, data_element)
-      if nd
-        puts "Row processed: #{nd.text.to_s}"
-        puts "with data: #{data_element}"
-        case nd.text.to_s
-        when /#BEGIN_ROW:([A-Z0-9_]+)#/
-          new_key = $1.downcase.to_sym
-          parse_loop(nd, new_key, data_element)
-        when /#{end_nd.text.to_s}/
-        else
-          new_node = nd.dup
-          puts "Adding Row #{nd.text} to file"
-          end_nd.add_next_sibling(new_node)
-          parse_content(new_node.elements, data_element)
-          nd.unlink
-        end
+    def expand_loop(nd, end_nd, key, element)
+      out = []
+      case nd.text.to_s
+      when /#BEGIN_ROW:#{key.upcase.to_s}#/
+        out = expand_loop(nd.next, end_nd, key, element)
+      when end_nd.text.to_s
+        out = []
+      when /#BEGIN_ROW:([A-Z0-9_]+)#/
+        new_key = $1.downcase.to_sym
+        out += process_loop(nd, new_key, element)
+      else
+        new_node = nd.dup
+        puts "Adding Row #{nd.text} to list"
+        parse_content(new_node.elements, element)
+        out << new_node
+        puts "Next Node is: #{nd.next.text.to_s}"
+        out += expand_loop(nd.next, end_nd, key, element)
       end
+      return out
     end
 
-    def extract_loop_rows(nd, key)
-      if nd
-        case nd.text.to_s
-        when /#BEGIN_ROW:#{key.upcase.to_s}#/
-          return extract_loop_rows(nd.next, key)
-        when /#END_ROW:#{key.upcase.to_s}#/
-          nd.unlink
-          return []
-        else
-          return [nd] + extract_loop_rows(nd.next, key)
-        end
-      else
-        return []
-      end
-    end
 
     def remove_loop(nd, key)
       if nd
         case nd.text.to_s
         when /#END_ROW:#{key.upcase.to_s}#/
-          out = nd.next
           nd.unlink
         else
-          out = remove_loop(nd.next, key)
+          remove_loop(nd.next, key)
           nd.unlink
+        end
+      end
+    end
+
+
+    def process_loop(nd, key, data)
+      out = []
+      puts "Found Loop #{key.upcase.to_s}"
+      end_row = extract_end_row(nd, key)
+
+      if !data.has_key?(key)
+        nil # Error in the data model
+        return []
+      elsif data[key].empty?
+        remove_loop(nd, key) # No data to put in
+        return []
+      else # Actual loop to process
+        data_set = data[key]
+        puts "Expanding Rows for loop #{key.upcase.to_s}"
+        puts "Data count is #{data_set.count}"
+        puts "Data is #{data_set}"
+        
+        data_set.each do |element|
+          out += expand_loop(nd, end_row, key, element)
         end
         return out
       end
@@ -177,14 +179,33 @@ module DocxTemplater
           case nd.text.to_s
           when /#BEGIN_ROW:([A-Z0-9_]+)#/
             key = $1.downcase.to_sym
-            parse_loop(nd, key, data)
+            # Get elements to add
+            elements = process_loop(nd, key, data)
+            # Add elements
+            elements.reverse.each do |e|
+              puts "Adding Row to file: #{e.text.to_s}"
+              nd.add_next_sibling(e)
+            end
           else # it's a normal table row
             parse_content(nd.elements, data)
           end
         when "t" # It's a leaf that contains data to replace
           subst_content(nd, data) 
-        else # it's neither a leaf or a loop so let's process it
+	else # it's neither a leaf or a loop so let's process it
           parse_content(nd.elements, data)
+        end
+      end
+    end
+
+    def cleanup_loop(nodeset) # Acts in w/tr only as loops are based on these
+      nodeset.each do |nd|
+        case nd.text.to_s
+        when /#BEGIN_ROW:([A-Z0-9_]+)#/
+          nd.unlink
+        when /#END_ROW:([A-Z0-9_]+)#/
+          nd.unlink
+        when /\$[A-Z0-9_]+\$/
+          nd.unlink
         end
       end
     end
