@@ -1,35 +1,10 @@
-# encoding: UTF-8
-
-# docx_templater -- Converts Word docx files into html or LaTeX via the kramdown syntax
-# Copyright (C) 2014 pl0o0f (florent@cryph.net) and don't forget GPL
-#
-# This software has been inspired from:
-# = https://github.com/jawspeak/ruby-docx-templater
-# = https://github.com/michaelfranzl/docx_converter
-# 
-# It is a complete rewrite however but credits are credits and everybody should be thanked for their contribution
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-# 
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-module DocxTemplater
+module Docstache
   class Render
     def initialize(options)
       @data = options[:data]
       @in_filepath = options[:inputfile]
       @out_filepath = options[:outputfile]
-      
+
       @zipfile = Zip::File.new(@in_filepath)
       document_xml = unzip_read("word/document.xml")
       footnotes_xml = unzip_read("word/footnotes.xml")
@@ -38,10 +13,10 @@ module DocxTemplater
       @footnotes = Nokogiri::XML(footnotes_xml)
 
     end
-    
+
     def render_file
       process_content()
- 
+
       buffer = zip_create(@content, @footnotes)
       if File.open(@out_filepath, "w") {|f| f.write(buffer.string) }
         return @out_filepath.to_s
@@ -57,7 +32,7 @@ module DocxTemplater
       buffer.rewind
       return buffer.sysread
     end
- 
+
     private
 
     def process_content()
@@ -70,7 +45,7 @@ module DocxTemplater
       cleanup_loop(content_tr)
       cleanup_loop(footnote_tr)
     end
- 
+
     def unzip_read(zip_path)
       file = @zipfile.find_entry(zip_path)
       contents = ""
@@ -98,7 +73,7 @@ module DocxTemplater
 
       return buffer
     end
- 
+
     def extract_end_row(nd, key)
       if !nd.nil?
         case nd.text.to_s
@@ -164,7 +139,7 @@ module DocxTemplater
         puts "Expanding Rows for loop #{key.upcase.to_s}"
         puts "Data count is #{data_set.count}"
         puts "Data is #{data_set}"
-        
+
         data_set.each do |element|
           out += expand_loop(nd, end_row, key, element)
         end
@@ -190,7 +165,7 @@ module DocxTemplater
             parse_content(nd.elements, data)
           end
         when "t" # It's a leaf that contains data to replace
-          subst_content(nd, data) 
+          subst_content(nd, data)
 	else # it's neither a leaf or a loop so let's process it
           parse_content(nd.elements, data)
         end
@@ -228,6 +203,6 @@ module DocxTemplater
     def safe(text)
       text.to_s
     end
-    
+
   end
 end

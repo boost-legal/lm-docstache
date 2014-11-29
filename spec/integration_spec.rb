@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'template_processor_spec'
 
 describe 'integration test', integration: true do
-  let(:data) { DocxTemplater::TestData::DATA }
+  let(:data) { Docstache::TestData::DATA }
   let(:base_path) { SPEC_BASE_PATH.join('example_input') }
   let(:input_file) { "#{base_path}/ExampleTemplate.docx" }
   let(:output_dir) { "#{base_path}/tmp" }
@@ -14,7 +14,7 @@ describe 'integration test', integration: true do
 
   context 'should process in incoming docx' do
     it 'generates a valid zip file (.docx)' do
-      DocxTemplater::DocxCreator.new(input_file, data).generate_docx_file(output_file)
+      Docstache::Render.new(input_file, data).generate_docx_file(output_file)
 
       archive = Zip::File.open(output_file)
       archive.close

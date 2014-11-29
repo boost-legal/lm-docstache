@@ -1,9 +1,7 @@
-# encoding: UTF-8
-
 require 'spec_helper'
 require 'nokogiri'
 
-module DocxTemplater
+module Docstache
   module TestData
     DATA = {
       teacher: 'Priya Vora',
@@ -32,7 +30,7 @@ module DocxTemplater
   end
 end
 
-describe DocxTemplater::TemplateProcessor do
+describe Docstache::Render do
   let(:data) { Marshal.load(Marshal.dump(DocxTemplater::TestData::DATA)) } # deep copy
   let(:base_path) { SPEC_BASE_PATH.join('example_input') }
   let(:xml) { File.read("#{base_path}/word/document.xml") }

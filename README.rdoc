@@ -1,6 +1,3 @@
-{<img src="https://travis-ci.org/jawspeak/ruby-docx-templater.png" />}[https://travis-ci.org/jawspeak/ruby-docx-templater]
-
-
 = Turns a docx file template and a data set into a fully formed docx document
 Inspired from [https://github.com/jawspeak/ruby-docx-templater] and [https://github.com/michaelfranzl/docx_converter], this takes a .docx file and uses it as a template to create a new docx, with your data
 
@@ -25,4 +22,3 @@ I frequently use this workflow:
  - Cut string to replace out to notepad
  - Paste string back into MS Word
  - Save Word Document
-
