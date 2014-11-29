@@ -1,8 +1,8 @@
 require 'nokogiri'
 require 'zip'
 
+require "docstache/document"
 
-dir = File.dirname(__FILE__)
-Dir[File.expand_path("#{dir}/docstache/*.rb")].uniq.each do |file|
-  require file
+module Docstache
+  #noop
 end

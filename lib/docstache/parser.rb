@@ -1,36 +1,18 @@
 module Docstache
-  class Render
-    def initialize(options)
-      @data = options[:data]
-      @in_filepath = options[:inputfile]
-      @out_filepath = options[:outputfile]
+  class Renderer
+    def initialize(xml, data)
+      @content = xml
+      @data = data
+      # @in_filepath = options[:inputfile]
+      # @out_filepath = options[:outputfile]
+      #
+      # @zipfile = Zip::File.new(@in_filepath)
+      # document_xml = unzip_read("word/document.xml")
+      # footnotes_xml = unzip_read("word/footnotes.xml")
+      #
+      # @content = Nokogiri::XML(document_xml)
+      # @footnotes = Nokogiri::XML(footnotes_xml)
 
-      @zipfile = Zip::File.new(@in_filepath)
-      document_xml = unzip_read("word/document.xml")
-      footnotes_xml = unzip_read("word/footnotes.xml")
-
-      @content = Nokogiri::XML(document_xml)
-      @footnotes = Nokogiri::XML(footnotes_xml)
-
-    end
-
-    def render_file
-      process_content()
-
-      buffer = zip_create(@content, @footnotes)
-      if File.open(@out_filepath, "w") {|f| f.write(buffer.string) }
-        return @out_filepath.to_s
-      else
-        return false
-      end
-    end
-
-    def render_stream
-      process_content()
-
-      buffer = zip_create(@content, @footnotes)
-      buffer.rewind
-      return buffer.sysread
     end
 
     private
