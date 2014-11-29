@@ -37,17 +37,19 @@ module Docstache
     end
 
     def save
-      buffer = zip_buffer
+      buffer = zip_buffer(@document)
       File.open(@path, "w") {|f| f.write buffer.string}
     end
 
     def render_file(output, data={})
-      buffer = zip_buffer
+      rendered = Docstache::Renderer.new(@document, data).render
+      buffer = zip_buffer(rendered)
       File.open(output, "w") {|f| f.write buffer.string}
     end
 
     def render_stream(data={})
-      buffer = zip_buffer
+      rendered = Docstache::Renderer.new(@document, data).render
+      buffer = zip_buffer(rendered)
       buffer.rewind
       return buffer.sysread
     end
@@ -72,7 +74,7 @@ module Docstache
       return contents
     end
 
-    def zip_buffer
+    def zip_buffer(document)
       buffer = Zip::OutputStream.write_buffer do |out|
         @zip_file.entries.each do |e|
           unless ["word/document.xml"].include?(e.name)

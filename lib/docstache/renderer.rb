@@ -3,64 +3,28 @@ module Docstache
     def initialize(xml, data)
       @content = xml
       @data = data
-      # @in_filepath = options[:inputfile]
-      # @out_filepath = options[:outputfile]
-      #
-      # @zipfile = Zip::File.new(@in_filepath)
-      # document_xml = unzip_read("word/document.xml")
-      # footnotes_xml = unzip_read("word/footnotes.xml")
-      #
-      # @content = Nokogiri::XML(document_xml)
-      # @footnotes = Nokogiri::XML(footnotes_xml)
+    end
 
+    def render
+      process_content
+      return @content
     end
 
     private
 
-    def process_content()
+    def process_content
       parse_content(@content.elements)
-      parse_content(@footnotes.elements)
 
       content_tr = @content.xpath('//w:tr')
-      footnote_tr = @footnotes.xpath('//w:tr')
 
       cleanup_loop(content_tr)
-      cleanup_loop(footnote_tr)
-    end
-
-    def unzip_read(zip_path)
-      file = @zipfile.find_entry(zip_path)
-      contents = ""
-      file.get_input_stream do |f|
-        contents = f.read
-      end
-      return contents
-    end
-
-    def zip_create(content, footnotes)
-      buffer = Zip::OutputStream.write_buffer do |out|
-        @zipfile.entries.each do |e|
-          unless ['word/document.xml', 'word/footnotes.xml'].include?(e.name)
-            out.put_next_entry(e.name)
-            out.write e.get_input_stream.read
-          end
-        end
-
-        out.put_next_entry('word/document.xml')
-        out.write content.to_xml(:indent => 0).gsub("\n","")
-
-        out.put_next_entry('word/footnotes.xml')
-        out.write footnotes.to_xml(:indent => 0).gsub("\n","")
-      end
-
-      return buffer
     end
 
     def extract_end_row(nd, key)
       if !nd.nil?
         case nd.text.to_s
-        when /#END_ROW:#{key.upcase.to_s}#/
-          puts "Found End Row for #{key.upcase.to_s}"
+        when /\{\{\/#{key.to_s}\}\}/
+          puts "Found End Row for #{key.to_s}"
           return nd
         else
           return extract_end_row(nd.next, key)
@@ -73,12 +37,12 @@ module Docstache
     def expand_loop(nd, end_nd, key, element)
       out = []
       case nd.text.to_s
-      when /#BEGIN_ROW:#{key.upcase.to_s}#/
+      when /\{\{\##{key.to_s}\}\}/
         out = expand_loop(nd.next, end_nd, key, element)
       when end_nd.text.to_s
         out = []
-      when /#BEGIN_ROW:([A-Z0-9_]+)#/
-        new_key = $1.downcase.to_sym
+      when /\{\{\#([a-zA-Z0-9_\.]+)\}\}/
+        new_key = $1.to_sym
         out += process_loop(nd, new_key, element)
       else
         new_node = nd.dup
@@ -95,7 +59,7 @@ module Docstache
     def remove_loop(nd, key)
       if nd
         case nd.text.to_s
-        when /#END_ROW:#{key.upcase.to_s}#/
+        when /\{\{\/#{key.upcase.to_s}\}\}/
           nd.unlink
         else
           remove_loop(nd.next, key)
@@ -107,7 +71,7 @@ module Docstache
 
     def process_loop(nd, key, data)
       out = []
-      puts "Found Loop #{key.upcase.to_s}"
+      puts "Found Loop #{key.to_s}"
       end_row = extract_end_row(nd, key)
 
       if !data.has_key?(key)
@@ -118,7 +82,7 @@ module Docstache
         return []
       else # Actual loop to process
         data_set = data[key]
-        puts "Expanding Rows for loop #{key.upcase.to_s}"
+        puts "Expanding Rows for loop #{key.to_s}"
         puts "Data count is #{data_set.count}"
         puts "Data is #{data_set}"
 
@@ -134,8 +98,8 @@ module Docstache
         case nd.name
         when "tr"
           case nd.text.to_s
-          when /#BEGIN_ROW:([A-Z0-9_]+)#/
-            key = $1.downcase.to_sym
+          when /\{\{\#([a-zA-Z0-9_\.]+)\}\}/
+            key = $1.to_sym
             # Get elements to add
             elements = process_loop(nd, key, data)
             # Add elements
@@ -157,11 +121,11 @@ module Docstache
     def cleanup_loop(nodeset) # Acts in w/tr only as loops are based on these
       nodeset.each do |nd|
         case nd.text.to_s
-        when /#BEGIN_ROW:([A-Z0-9_]+)#/
+        when /\{\{\#([a-zA-Z0-9_\.]+)\}\}/
           nd.unlink
-        when /#END_ROW:([A-Z0-9_]+)#/
+        when /\{\{\/([a-zA-Z0-9_\.]+)\}\}/
           nd.unlink
-        when /\$[A-Z0-9_]+\$/
+        when /\{\{[a-zA-Z0-9_\.]+\}\}/
           nd.unlink
         end
       end
@@ -169,13 +133,11 @@ module Docstache
 
     def subst_content(nd, data)
       inner = nd.inner_html
-      keys = nd.text.scan(/\$([A-Z0-9_]+)\$/).map(&:first).map(&:downcase).map(&:to_sym)
+      keys = nd.text.scan(/\{\{([a-zA-Z0-9_\.]+)\}\}/).map(&:first).map(&:to_sym)
       keys.each do |key|
-        if data.has_key?(key)
-          value = data[key]
-          puts "Substituting $#{key.to_s.upcase}$ with #{value}"
-          inner.gsub!("$#{key.to_s.upcase}$", safe(value))
-        end
+        value = data[key]
+        puts "Substituting {{#{key.to_s}}} with #{value}"
+        inner.gsub!("{{#{key.to_s}}}", safe(value))
       end
       if !keys.empty?
         nd.inner_html = inner
