@@ -9,7 +9,7 @@ module Docstache
       documents = zip_files.map{|f| Nokogiri::XML(unzip_read(f, "word/document.xml"))}
       documents.each do |doc|
         @document.css('w|p').last.add_next_sibling(page_break)
-        @document.css('w|p').last.add_next_sibling(doc.at_css('w|body').children)
+        @document.css('w|p').last.add_next_sibling(doc.css('w|body > *:not(w|sectPr)'))
       end
     end
 
