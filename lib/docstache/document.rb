@@ -8,8 +8,8 @@ module Docstache
       zip_files = paths.map{|p| Zip::File.open(p)}
       documents = zip_files.map{|f| Nokogiri::XML(unzip_read(f, "word/document.xml"))}
       documents.each do |doc|
-        @document.at_css('w|p:last').add_next_sibling(page_break)
-        @document.at_css('w|p:last').add_next_sibling(doc.at_css('w|body').children)
+        @document.css('w|p').last.add_next_sibling(page_break)
+        @document.css('w|p').last.add_next_sibling(doc.at_css('w|body').children)
       end
     end
 
