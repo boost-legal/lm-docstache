@@ -2,7 +2,7 @@ module Docstache
   class Renderer
     def initialize(xml, data)
       @content = xml
-      @data = data
+      @data = DataScope.new(data)
     end
 
     def render
@@ -42,7 +42,7 @@ module Docstache
       when end_nd.text.to_s
         out = []
       when /\{\{\#([a-zA-Z0-9_\.]+)\}\}/
-        new_key = $1.to_sym
+        new_key = $1
         out += process_loop(nd, new_key, element)
       else
         new_node = nd.dup
@@ -71,26 +71,26 @@ module Docstache
 
     def process_loop(nd, key, data)
       out = []
-      puts "Found Loop #{key.to_s}"
-      end_row = extract_end_row(nd, key)
-
-      if !data.has_key?(key)
-        nil # Error in the data model
-        return []
-      elsif data[key].empty?
-        remove_loop(nd, key) # No data to put in
-        return []
-      else # Actual loop to process
-        data_set = data[key]
-        puts "Expanding Rows for loop #{key.to_s}"
-        puts "Data count is #{data_set.count}"
-        puts "Data is #{data_set}"
-
-        data_set.each do |element|
-          out += expand_loop(nd, end_row, key, element)
-        end
-        return out
-      end
+      # puts "Found Loop #{key.to_s}"
+      # end_row = extract_end_row(nd, key)
+      #
+      # if !data.has_key?(key)
+      #   nil # Error in the data model
+      #   return []
+      # elsif data[key].empty?
+      #   remove_loop(nd, key) # No data to put in
+      #   return []
+      # else # Actual loop to process
+      #   data_set = data[key]
+      #   puts "Expanding Rows for loop #{key.to_s}"
+      #   puts "Data count is #{data_set.count}"
+      #   puts "Data is #{data_set}"
+      #
+      #   data_set.each do |element|
+      #     out += expand_loop(nd, end_row, key, element)
+      #   end
+      #   return out
+      # end
     end
 
     def parse_content(elements, data=@data)
@@ -99,7 +99,7 @@ module Docstache
         when "tr"
           case nd.text.to_s
           when /\{\{\#([a-zA-Z0-9_\.]+)\}\}/
-            key = $1.to_sym
+            key = $1
             # Get elements to add
             elements = process_loop(nd, key, data)
             # Add elements
@@ -133,9 +133,9 @@ module Docstache
 
     def subst_content(nd, data)
       inner = nd.inner_html
-      keys = nd.text.scan(/\{\{([a-zA-Z0-9_\.]+)\}\}/).map(&:first).map(&:to_sym)
+      keys = nd.text.scan(/\{\{([a-zA-Z0-9_\.]+)\}\}/).map(&:first)
       keys.each do |key|
-        value = data[key]
+        value = data.get(key)
         puts "Substituting {{#{key.to_s}}} with #{value}"
         inner.gsub!("{{#{key.to_s}}}", safe(value))
       end

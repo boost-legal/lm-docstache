@@ -1,5 +1,5 @@
 require 'fileutils'
-require 'docstache'
+require_relative '../lib/docstache'
 
 SPEC_BASE_PATH = Pathname.new(File.expand_path(File.dirname(__FILE__)))
 
