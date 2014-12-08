@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.4
+
+* Rewrite of the Renderer class
+* Conditional Blocks now work
+* Loops now work
+
 ## 0.0.3
 
 * Added ability to have nested tags like `{{purchase_order.number}}` through the
