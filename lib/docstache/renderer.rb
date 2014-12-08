@@ -15,13 +15,6 @@ module Docstache
 
     private
 
-    # Possible block cases that must be handled
-    # * ~~conditional block within a single run~~
-    # * ~~conditional block within a single paragraph~~
-    # * [ ] conditional block surrounding one or more paragraphs
-    # * [ ] loop block containing one or more paragraphs
-    # * [ ] loop block containing one or more rows
-
     def find_and_expand_blocks
       blocks = @content.text.scan(BLOCK_REGEX)
       found_blocks = blocks.uniq.map { |block|
