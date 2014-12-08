@@ -14,7 +14,7 @@ module Docstache
     end
 
     def tags
-      @document.text.gsub(/\s+/, '').scan(/\{\{[\w\.\/\#]+\}\}/)
+      @document.text.gsub(/\s+/, '').scan(/\{\{[\w\.\/\#\^]+\}\}/)
     end
 
     def usable_tags

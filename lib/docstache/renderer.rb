@@ -1,151 +1,80 @@
 module Docstache
   class Renderer
+    BLOCK_REGEX = /\{\{([\#\^])([\w\.]+)\}\}.+?\{\{\/\g<2>\}\}/m
+
     def initialize(xml, data)
       @content = xml
       @data = DataScope.new(data)
     end
 
     def render
-      process_content
+      find_and_expand_blocks
+      replace_tags(@content, @data)
       return @content
     end
 
     private
 
-    def process_content
-      parse_content(@content.elements)
-
-      content_tr = @content.xpath('//w:tr')
-
-      cleanup_loop(content_tr)
+    def find_and_expand_blocks
+      blocks = @content.text.scan(BLOCK_REGEX)
+      found_blocks = blocks.uniq.map { |block|
+        inverted = block[0] == "^"
+        Block.find_all(name: block[1], elements: @content.elements, data: @data, inverted: inverted)
+      }.flatten
+      found_blocks.each do |block|
+        expand_and_replace_block(block)
+      end
     end
 
-    def extract_end_row(nd, key)
-      if !nd.nil?
-        case nd.text.to_s
-        when /\{\{\/#{key.to_s}\}\}/
-          puts "Found End Row for #{key.to_s}"
-          return nd
+    def expand_and_replace_block(block)
+      case block.type
+      when :conditional
+        case condition = @data.get(block.name)
+        when Array
+          condition = !condition.empty?
         else
-          return extract_end_row(nd.next, key)
+          condition = !!condition
         end
-      else
-        return nil
-      end
-    end
-
-    def expand_loop(nd, end_nd, key, element)
-      out = []
-      case nd.text.to_s
-      when /\{\{\##{key.to_s}\}\}/
-        out = expand_loop(nd.next, end_nd, key, element)
-      when end_nd.text.to_s
-        out = []
-      when /\{\{\#([a-zA-Z0-9_\.]+)\}\}/
-        new_key = $1
-        out += process_loop(nd, new_key, element)
-      else
-        new_node = nd.dup
-        puts "Adding Row #{nd.text} to list"
-        parse_content(new_node.elements, element)
-        out << new_node
-        puts "Next Node is: #{nd.next.text.to_s}"
-        out += expand_loop(nd.next, end_nd, key, element)
-      end
-      return out
-    end
-
-
-    def remove_loop(nd, key)
-      if nd
-        case nd.text.to_s
-        when /\{\{\/#{key.upcase.to_s}\}\}/
-          nd.unlink
-        else
-          remove_loop(nd.next, key)
-          nd.unlink
+        condition = !condition if block.inverted
+        unless condition
+          block.content_elements.each(&:unlink)
         end
-      end
-    end
-
-
-    def process_loop(nd, key, data)
-      out = []
-      # puts "Found Loop #{key.to_s}"
-      # end_row = extract_end_row(nd, key)
-      #
-      # if !data.has_key?(key)
-      #   nil # Error in the data model
-      #   return []
-      # elsif data[key].empty?
-      #   remove_loop(nd, key) # No data to put in
-      #   return []
-      # else # Actual loop to process
-      #   data_set = data[key]
-      #   puts "Expanding Rows for loop #{key.to_s}"
-      #   puts "Data count is #{data_set.count}"
-      #   puts "Data is #{data_set}"
-      #
-      #   data_set.each do |element|
-      #     out += expand_loop(nd, end_row, key, element)
-      #   end
-      #   return out
-      # end
-    end
-
-    def parse_content(elements, data=@data)
-      elements.each do |nd|
-        case nd.name
-        when "tr"
-          case nd.text.to_s
-          when /\{\{\#([a-zA-Z0-9_\.]+)\}\}/
-            key = $1
-            # Get elements to add
-            elements = process_loop(nd, key, data)
-            # Add elements
-            elements.reverse.each do |e|
-              puts "Adding Row to file: #{e.text.to_s}"
-              nd.add_next_sibling(e)
-            end
-          else # it's a normal table row
-            parse_content(nd.elements, data)
+      when :loop
+        set = @data.get(block.name)
+        content = set.map { |item|
+          data = DataScope.new(item, @data)
+          elements = block.content_elements.map(&:clone)
+          replace_tags(Nokogiri::XML::NodeSet.new(@content, elements), data)
+        }
+        content.each do |els|
+          el = els[0]
+          els[1..-1].each do |next_el|
+            el.after(next_el)
+            el = next_el
           end
-        when "t" # It's a leaf that contains data to replace
-          subst_content(nd, data)
-	else # it's neither a leaf or a loop so let's process it
-          parse_content(nd.elements, data)
+          block.closing_element.before(els[0])
+        end
+        block.content_elements.each(&:unlink)
+      end
+      block.opening_element.unlink
+      block.closing_element.unlink
+    end
+
+    def replace_tags(elements, data)
+      elements.css('w|t').each do |text_el|
+        if !(results = text_el.text.scan(/\{\{([\w\.]+)\}\}/).flatten).empty?
+          rendered_string = text_el.text
+          results.each do |r|
+            rendered_string.gsub!(/\{\{#{r}\}\}/, text(data.get(r)))
+          end
+          text_el.content = rendered_string
         end
       end
+      return elements
     end
 
-    def cleanup_loop(nodeset) # Acts in w/tr only as loops are based on these
-      nodeset.each do |nd|
-        case nd.text.to_s
-        when /\{\{\#([a-zA-Z0-9_\.]+)\}\}/
-          nd.unlink
-        when /\{\{\/([a-zA-Z0-9_\.]+)\}\}/
-          nd.unlink
-        when /\{\{[a-zA-Z0-9_\.]+\}\}/
-          nd.unlink
-        end
-      end
-    end
-
-    def subst_content(nd, data)
-      inner = nd.inner_html
-      keys = nd.text.scan(/\{\{([a-zA-Z0-9_\.]+)\}\}/).map(&:first)
-      keys.each do |key|
-        value = data.get(key)
-        puts "Substituting {{#{key.to_s}}} with #{value}"
-        inner.gsub!("{{#{key.to_s}}}", safe(value))
-      end
-      if !keys.empty?
-        nd.inner_html = inner
-      end
-    end
-
-    def safe(text)
-      text.to_s
+    def text(obj)
+      "#{obj}"
     end
 
   end
