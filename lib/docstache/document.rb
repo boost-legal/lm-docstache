@@ -14,11 +14,11 @@ module Docstache
     end
 
     def tags
-      @document.text.gsub(/\s+/, '').scan(/\{\{[\w\.\/\#\^]+\}\}/)
+      @document.text.gsub(/\s+/, '').scan(/\{\{[\w\.\^\#\/]+\}\}/)
     end
 
     def usable_tags
-      @document.css('w|t').select { |tag| tag.text =~ /\{\{[\w\.\/\#]+\}\}/ }.map(&:text)
+      @document.css('w|t').select { |tag| tag.text =~ /\{\{[\w\.\^\#\/]+\}\}/ }.map(&:text)
     end
 
     def fix_errors

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.5
+
+* Fixed a bug that caused {{^tags}} to always show up as errors
+
 ## 0.0.4
 
 * Rewrite of the Renderer class
