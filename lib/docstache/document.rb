@@ -18,7 +18,9 @@ module Docstache
     end
 
     def usable_tags
-      @document.css('w|t').select { |tag| tag.text =~ /\{\{[\w\.\^\#\/]+\}\}/ }.map(&:text)
+      @document.css('w|t').select { |tag| tag.text =~ /\{\{[\w\.\^\#\/]+\}\}/ }.map { |tag|
+        tag.text.scan(/\{\{[\w\.\^\#\/]+\}\}/)
+      }.flatten
     end
 
     def fix_errors
