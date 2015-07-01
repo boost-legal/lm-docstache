@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0
+
+* [08f09d19] Hash keys inside DataScope are symbolized
+
+## 0.0.6
+
+* [fcba2080] Fixed a bug When two tags were inside one xml node, it would mistakenly report that there was an error when there wasn't.
+
 ## 0.0.5
 
 * Fixed a bug that caused {{^tags}} to always show up as errors
