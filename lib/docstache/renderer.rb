@@ -1,6 +1,6 @@
 module Docstache
   class Renderer
-    BLOCK_REGEX = /\{\{([\#\^])([\w\.]+)\}\}.+?\{\{\/\g<2>\}\}/m
+    BLOCK_REGEX = /\{\{([\#\^])([\w\.]+)\}\}.+?\{\{\/\k<2>\}\}/m
 
     def initialize(xml, data)
       @content = xml
