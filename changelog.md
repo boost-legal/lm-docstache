@@ -1,12 +1,17 @@
 # Changelog
 
+## 0.2.0
+
+* [902d9890bee1a20a90377a94c3096a51781e8a24] You can access array elements with `[]`s within a `{{tag}}`
+* [a36c4fefed763b6a54d15564e887fbcf3c3421e3] You can use conditions on loops to only loop over specific elements
+
 ## 0.1.0
 
-* [08f09d19] Hash keys inside DataScope are symbolized
+* [08f09d1922e73ccaf17989a568deeb2ce0ebd4b8] Hash keys inside DataScope are symbolized
 
 ## 0.0.6
 
-* [fcba2080] Fixed a bug When two tags were inside one xml node, it would mistakenly report that there was an error when there wasn't.
+* [f945bc70ebb684f21e2488a3ad30c205bc05ddbb] Fixed a bug When two tags were inside one xml node, it would mistakenly report that there was an error when there wasn't.
 
 ## 0.0.5
 
