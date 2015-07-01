@@ -7,6 +7,7 @@ module Docstache
     end
 
     def get(key, hash=@data, original_key=key)
+      symbolize_keys!(hash)
       tokens = key.split('.')
       if tokens.length == 1
         return hash.fetch(key.to_sym) { |key| @parent.get(original_key) }
@@ -18,6 +19,14 @@ module Docstache
           return @parent.get(original_key)
         end
         return get(tokens.join('.'), subhash, original_key)
+      end
+    end
+
+    private
+
+    def symbolize_keys!(hash)
+      hash.keys.each do |key|
+        hash[(key.to_sym rescue key)] = hash.delete(key)
       end
     end
 
