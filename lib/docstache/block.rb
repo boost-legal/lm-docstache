@@ -1,13 +1,14 @@
 module Docstache
   class Block
-    attr_reader :name, :opening_element, :content_elements, :closing_element, :inverted
-    def initialize(name:, data:, opening_element:, content_elements:, closing_element:, inverted:)
+    attr_reader :name, :opening_element, :content_elements, :closing_element, :inverted, :condition
+    def initialize(name:, data:, opening_element:, content_elements:, closing_element:, inverted:, condition: nil)
       @name = name
       @data = data
       @opening_element = opening_element
       @content_elements = content_elements
       @closing_element = closing_element
       @inverted = inverted
+      @condition = condition
     end
 
     def type
@@ -30,14 +31,14 @@ module Docstache
       type == :conditional
     end
 
-    def self.find_all(name:, data:, elements:, inverted:)
-      if elements.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}\}\}.+\{\{\/#{name}\}\}/m)
-        if elements.any? { |e| e.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}\}\}.+\{\{\/#{name}\}\}/m) }
-          matches = elements.select { |e| e.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}\}\}.+\{\{\/#{name}\}\}/m) }
-          finds = matches.map { |match| find_all(name: name, data: data, elements: match.elements, inverted: inverted) }.flatten
+    def self.find_all(name:, data:, elements:, inverted:, condition: nil)
+      if elements.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}#{condition ? " when #{condition}" : ''}\}\}.+?\{\{\/#{name}\}\}/m)
+        if elements.any? { |e| e.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}#{condition ? " when #{condition}" : ''}\}\}.+?\{\{\/#{name}\}\}/m) }
+          matches = elements.select { |e| e.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}#{condition ? " when #{condition}" : ''}\}\}.+?\{\{\/#{name}\}\}/m) }
+          finds = matches.map { |match| find_all(name: name, data: data, elements: match.elements, inverted: inverted, condition: condition) }.flatten
           return finds
         else
-          opening = elements.select { |e| e.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}\}\}/) }.first
+          opening = elements.select { |e| e.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}#{condition ? " when #{condition}" : ''}\}\}/) }.first
           content = []
           next_sibling = opening.next
           while !next_sibling.text.match(/\{\{\/#{name}\}\}/)
@@ -45,7 +46,7 @@ module Docstache
             next_sibling = next_sibling.next
           end
           closing = next_sibling
-          return Block.new(name: name, data: data, opening_element: opening, content_elements: content, closing_element: closing, inverted: inverted)
+          return Block.new(name: name, data: data, opening_element: opening, content_elements: content, closing_element: closing, inverted: inverted, condition: condition)
         end
       else
         raise "Block not found in given elements"

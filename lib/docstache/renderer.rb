@@ -1,6 +1,6 @@
 module Docstache
   class Renderer
-    BLOCK_REGEX = /\{\{([\#\^])([\w\.]+)\}\}.+?\{\{\/\k<2>\}\}/m
+    BLOCK_REGEX = /\{\{([\#\^])([\w\.]+)(?:\swhen\s(.+?\s?(?:==|~=)\s?.+?))?\}\}.+?\{\{\/\k<2>\}\}/m
 
     def initialize(xml, data)
       @content = xml
@@ -19,7 +19,7 @@ module Docstache
       blocks = @content.text.scan(BLOCK_REGEX)
       found_blocks = blocks.uniq.map { |block|
         inverted = block[0] == "^"
-        Block.find_all(name: block[1], elements: @content.elements, data: @data, inverted: inverted)
+        Block.find_all(name: block[1], elements: @content.elements, data: @data, inverted: inverted, condition: block[2])
       }.flatten
       found_blocks.each do |block|
         expand_and_replace_block(block)
@@ -40,7 +40,7 @@ module Docstache
           block.content_elements.each(&:unlink)
         end
       when :loop
-        set = @data.get(block.name)
+        set = @data.get(block.name, condition: block.condition)
         content = set.map { |item|
           data = DataScope.new(item, @data)
           elements = block.content_elements.map(&:clone)
