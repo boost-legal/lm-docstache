@@ -1,11 +1,10 @@
 require 'nokogiri'
 require 'zip'
-
-require_relative "docstache/version"
-require_relative "docstache/data_scope"
-require_relative "docstache/block"
-require_relative "docstache/renderer"
-require_relative "docstache/document"
+require "docstache/version"
+require "docstache/data_scope"
+require "docstache/document"
+require "docstache/block"
+require "docstache/renderer"
 
 module Docstache
   #noop
