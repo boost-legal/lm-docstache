@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.1
+* [25b4c2e9e3dcb19b6fe9a255fec2c2bfd92029a6] Fixed a bug where a tag with regular expression characters could not be fixed with the `fix_errors` method 
+
 ## 0.2.0
 
 * [902d9890bee1a20a90377a94c3096a51781e8a24] You can access array elements with `[]`s within a `{{tag}}`
