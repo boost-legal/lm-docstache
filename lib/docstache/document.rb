@@ -24,11 +24,6 @@ module Docstache
     end
 
     def fix_errors
-      missing_tags = tags - usable_tags
-      problem_paragraphs = missing_tags.map { |tag|
-        @document.css('w|p').select {|t| t.text =~ /#{tag}/}.first
-      }
-
       problem_paragraphs.each do |p|
         flatten_paragraph(p) if p
       end
@@ -57,6 +52,13 @@ module Docstache
     end
 
     private
+
+    def problem_paragraphs
+      missing_tags = tags - usable_tags
+      missing_tags.flat_map do |tag|
+        @document.css('w|p').select {|t| t.text =~ /#{Regexp.escape(tag)}/}
+      end
+    end
 
     def flatten_paragraph(p)
       runs = p.css('w|r')
