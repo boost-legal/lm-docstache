@@ -23,7 +23,7 @@ module Docstache
 
     def usable_tags
       @documents.values.flat_map { |document|
-        document.css('w|t').select { |tag| tag.text =~ /\{\{.+?\}\}/ }.map { |tag|
+        document.css('w|t').select { |tag| tag.text =~ /\{\{.+?\}\}/ }.flat_map { |tag|
           tag.text.scan(/\{\{.+?\}\}/)
         }
       }
