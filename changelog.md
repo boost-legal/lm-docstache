@@ -1,7 +1,10 @@
 # Changelog
 
+## 0.3.1
+* [2228ba727f8a2e3705fe223ce02b5e760c935572] Added `Document#unusable_tags` to list out tags that are not able to be interpolated due to being split across tags in the Document's XML
+
 ## 0.3.0
-* [???] Added ability to do tag interpolation in headers and footers.  The header/footer used is the header or footer from the first document passed into `Document.new()`
+* [c841078f7d340c18323f05f0785e75cd560eed2c] Added ability to do tag interpolation in headers and footers.  The header/footer used is the header or footer from the first document passed into `Document.new()`
 
 ## 0.2.1
 * [25b4c2e9e3dcb19b6fe9a255fec2c2bfd92029a6] Fixed a bug where a tag with regular expression characters could not be fixed with the `fix_errors` method
