@@ -4,6 +4,7 @@ module Docstache
       raise ArgumentError if paths.empty?
       @path = paths.shift
       @zip_file = Zip::File.open(@path)
+      load_references
       @document = Nokogiri::XML(unzip_read(@zip_file, "word/document.xml"))
       zip_files = paths.map{|p| Zip::File.open(p)}
       documents = zip_files.map{|f| Nokogiri::XML(unzip_read(f, "word/document.xml"))}
@@ -11,16 +12,21 @@ module Docstache
         @document.css('w|p').last.add_next_sibling(page_break)
         @document.css('w|p').last.add_next_sibling(doc.css('w|body > *:not(w|sectPr)'))
       end
+      find_documents_to_interpolate
     end
 
     def tags
-      @document.text.gsub(/\s+/, '').scan(/\{\{.+?\}\}/)
+      @documents.values.flat_map { |document|
+        document.text.gsub(/\s+/, '').scan(/\{\{.+?\}\}/)
+      }
     end
 
     def usable_tags
-      @document.css('w|t').select { |tag| tag.text =~ /\{\{.+?\}\}/ }.map { |tag|
-        tag.text.scan(/\{\{.+?\}\}/)
-      }.flatten
+      @documents.values.flat_map { |document|
+        document.css('w|t').select { |tag| tag.text =~ /\{\{.+?\}\}/ }.map { |tag|
+          tag.text.scan(/\{\{.+?\}\}/)
+        }
+      }
     end
 
     def fix_errors
@@ -34,19 +40,27 @@ module Docstache
     end
 
     def save
-      buffer = zip_buffer(@document)
+      buffer = zip_buffer(@documents)
       File.open(@path, "w") {|f| f.write buffer.string}
     end
 
     def render_file(output, data={})
-      rendered = Docstache::Renderer.new(@document, data).render
-      buffer = zip_buffer(rendered)
+      rendered_documents = Hash[
+        @documents.map { |(path, document)|
+          [path, Docstache::Renderer.new(document.dup, data).render]
+        }
+      ]
+      buffer = zip_buffer(rendered_documents)
       File.open(output, "w") {|f| f.write buffer.string}
     end
 
     def render_stream(data={})
-      rendered = Docstache::Renderer.new(@document, data).render
-      buffer = zip_buffer(rendered)
+      rendered_documents = Hash[
+        @documents.map { |(path, document)|
+          [path, Docstache::Renderer.new(document.dup, data).render]
+        }
+      ]
+      buffer = zip_buffer(rendered_documents)
       buffer.rewind
       return buffer.sysread
     end
@@ -55,9 +69,11 @@ module Docstache
 
     def problem_paragraphs
       missing_tags = tags - usable_tags
-      missing_tags.flat_map do |tag|
-        @document.css('w|p').select {|t| t.text =~ /#{Regexp.escape(tag)}/}
-      end
+      missing_tags.flat_map { |tag|
+        @documents.values.inject([]) { |tags, document|
+          tags + document.css('w|p').select {|t| t.text =~ /#{Regexp.escape(tag)}/}
+        }
+      }
     end
 
     def flatten_paragraph(p)
@@ -78,16 +94,18 @@ module Docstache
       return contents
     end
 
-    def zip_buffer(document)
+    def zip_buffer(documents)
       buffer = Zip::OutputStream.write_buffer do |out|
         @zip_file.entries.each do |e|
-          unless ["word/document.xml"].include?(e.name)
+          unless documents.keys.include?(e.name)
             out.put_next_entry(e.name)
             out.write(e.get_input_stream.read)
           end
         end
-        out.put_next_entry("word/document.xml")
-        out.write(@document.to_xml(indent: 0).gsub("\n", ""))
+        documents.each do |path, document|
+          out.put_next_entry(path)
+          out.write(document.to_xml(indent: 0).gsub("\n", ""))
+        end
       end
       return buffer
     end
@@ -101,6 +119,29 @@ module Docstache
       r.add_child(br)
       br['w:type'] = "page"
       return p
+    end
+
+    def load_references
+      @references = {}
+      ref_xml = Nokogiri::XML(unzip_read(@zip_file, "word/_rels/document.xml.rels"))
+      ref_xml.css("Relationship").each do |ref|
+        id = ref.attributes["Id"].value
+        @references[id] = {
+          id: id,
+          type: ref.attributes["Type"].value.split("/")[-1].to_sym,
+          target: ref.attributes["Target"].value
+        }
+      end
+    end
+
+    def find_documents_to_interpolate
+      @documents = {"word/document.xml" => @document}
+      @document.css("w|headerReference, w|footerReference").each do |header_ref|
+        if @references.has_key?(header_ref.attributes["id"].value)
+          ref = @references[header_ref.attributes["id"].value]
+          @documents["word/#{ref[:target]}"] = Nokogiri::XML(unzip_read(@zip_file, "word/#{ref[:target]}"))
+        end
+      end
     end
   end
 end
