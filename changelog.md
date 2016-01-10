@@ -1,7 +1,10 @@
 # Changelog
 
+## 0.3.0
+* [???] Added ability to do tag interpolation in headers and footers.  The header/footer used is the header or footer from the first document passed into `Document.new()`
+
 ## 0.2.1
-* [25b4c2e9e3dcb19b6fe9a255fec2c2bfd92029a6] Fixed a bug where a tag with regular expression characters could not be fixed with the `fix_errors` method 
+* [25b4c2e9e3dcb19b6fe9a255fec2c2bfd92029a6] Fixed a bug where a tag with regular expression characters could not be fixed with the `fix_errors` method
 
 ## 0.2.0
 
