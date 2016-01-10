@@ -68,7 +68,11 @@ module Docstache
     private
 
     def problem_paragraphs
-      missing_tags = tags - usable_tags
+      missing_tags = tags
+      usable_tags.each do |usable_tag|
+        index = missing_tags.index(usable_tag)
+        missing_tags.delete_at(index) if index
+      end
       missing_tags.flat_map { |tag|
         @documents.values.inject([]) { |tags, document|
           tags + document.css('w|p').select {|t| t.text =~ /#{Regexp.escape(tag)}/}
