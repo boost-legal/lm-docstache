@@ -32,8 +32,8 @@ module Docstache
     def unusable_tags
       unusable_tags = tags
       usable_tags.each do |usable_tag|
-        index = missing_tags.index(usable_tag)
-        missing_tags.delete_at(index) if index
+        index = unusable_tags.index(usable_tag)
+        unusable_tags.delete_at(index) if index
       end
       return unusable_tags
     end
