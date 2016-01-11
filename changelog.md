@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.2
+* [b3b66a0cd7ae67834cdbe7c18cefdb1498bcc5ab] I'm an idiot.  Fixed an error in the `Document#unusable_tags` method
+
 ## 0.3.1
 * [2228ba727f8a2e3705fe223ce02b5e760c935572] Added `Document#unusable_tags` to list out tags that are not able to be interpolated due to being split across tags in the Document's XML
 
