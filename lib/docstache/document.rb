@@ -17,7 +17,7 @@ module Docstache
 
     def tags
       @documents.values.flat_map { |document|
-        document.text.gsub(/\s+/, '').scan(/\{\{.+?\}\}/)
+        document.text.strip.scan(/\{\{.+?\}\}/)
       }
     end
 
