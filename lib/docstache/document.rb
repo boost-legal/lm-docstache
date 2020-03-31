@@ -16,17 +16,17 @@ module Docstache
     end
 
     def tags
-      @documents.values.flat_map { |document|
+      @documents.values.flat_map do |document|
         document.text.strip.scan(/\{\{.+?\}\}/)
-      }
+      end
     end
 
     def usable_tags
-      @documents.values.flat_map { |document|
-        document.css('w|t').select { |tag| tag.text =~ /\{\{.+?\}\}/ }.flat_map { |tag|
-          tag.text.scan(/\{\{.+?\}\}/)
-        }
-      }
+      @documents.values.flat_map do |document|
+        document.css('w|t')
+          .select { |tag| tag.text =~ /\{\{.+?\}\}/ }
+          .flat_map { |tag| tag.text.scan(/\{\{.+?\}\}/) }
+      end
     end
 
     def unusable_tags
@@ -39,9 +39,7 @@ module Docstache
     end
 
     def fix_errors
-      problem_paragraphs.each do |p|
-        flatten_paragraph(p) if p
-      end
+      problem_paragraphs.each { |p| flatten_paragraph(p) if p.present? }
     end
 
     def errors?
@@ -50,14 +48,14 @@ module Docstache
 
     def save
       buffer = zip_buffer(@documents)
-      File.open(@path, "w") {|f| f.write buffer.string}
+      File.open(@path, "w") { |f| f.write buffer.string }
     end
 
     def render_file(output, data={})
       rendered_documents = Hash[
-        @documents.map { |(path, document)|
+        @documents.map do |(path, document)|
           [path, Docstache::Renderer.new(document.dup, data).render]
-        }
+        end
       ]
       buffer = zip_buffer(rendered_documents)
       File.open(output, "w") {|f| f.write buffer.string}
@@ -65,9 +63,9 @@ module Docstache
 
     def render_stream(data={})
       rendered_documents = Hash[
-        @documents.map { |(path, document)|
+        @documents.map do |(path, document)|
           [path, Docstache::Renderer.new(document.dup, data).render]
-        }
+        end
       ]
       buffer = zip_buffer(rendered_documents)
       buffer.rewind
@@ -77,11 +75,11 @@ module Docstache
     private
 
     def problem_paragraphs
-      unusable_tags.flat_map { |tag|
-        @documents.values.inject([]) { |tags, document|
+      unusable_tags.flat_map do |tag|
+        @documents.values.inject([]) do |tags, document|
           tags + document.css('w|p').select {|t| t.text =~ /#{Regexp.escape(tag)}/}
-        }
-      }
+        end
+      end
     end
 
     def flatten_paragraph(p)
@@ -96,9 +94,7 @@ module Docstache
     def unzip_read(zip, zip_path)
       file = zip.find_entry(zip_path)
       contents = ""
-      file.get_input_stream do |f|
-        contents = f.read
-      end
+      file.get_input_stream { |f| contents = f.read }
       return contents
     end
 

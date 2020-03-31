@@ -52,6 +52,5 @@ module Docstache
         raise "Block not found in given elements"
       end
     end
-
   end
 end

@@ -17,10 +17,10 @@ module Docstache
 
     def find_and_expand_blocks
       blocks = @content.text.scan(BLOCK_REGEX)
-      found_blocks = blocks.uniq.map { |block|
+      found_blocks = blocks.uniq.map do |block|
         inverted = block[0] == "^"
         Block.find_all(name: block[1], elements: @content.elements, data: @data, inverted: inverted, condition: block[2])
-      }.flatten
+      end.flatten
       found_blocks.each do |block|
         expand_and_replace_block(block)
       end
@@ -41,11 +41,11 @@ module Docstache
         end
       when :loop
         set = @data.get(block.name, condition: block.condition)
-        content = set.map { |item|
+        content = set.map do |item|
           data = DataScope.new(item, @data)
           elements = block.content_elements.map(&:clone)
           replace_tags(Nokogiri::XML::NodeSet.new(@content, elements), data)
-        }
+        end
         content.each do |els|
           el = els[0]
           els[1..-1].each do |next_el|
