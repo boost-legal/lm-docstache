@@ -12,13 +12,11 @@ module Docstache
       if tokens.length == 1
         if key.match(/(\w+)\[(\d+)\]/)
           result = hash.fetch($1.to_sym) { |key| @parent.get(original_key) }
-          if result.respond_to?(:[])
-            result = result[$2.to_i]
-          end
+          result = result[$2.to_i] if result.respond_to?(:[])
         else
           result = hash.fetch(key.to_sym) { |key| @parent.get(original_key) }
         end
-        if condition.nil? || !result.respond_to?(:select)
+        unless condition.present? && result.respond_to?(:select)
           return result
         else
           return result.select { |el| evaluate_condition(condition, el) }
