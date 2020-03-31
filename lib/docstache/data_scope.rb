@@ -7,7 +7,7 @@ module Docstache
     end
 
     def get(key, hash: @data, original_key: key, condition: nil)
-      symbolize_keys!(hash)
+      hash.symbolize_keys!
       tokens = key.split('.')
       if tokens.length == 1
         if key.match(/(\w+)\[(\d+)\]/)
@@ -71,13 +71,6 @@ module Docstache
         get(expression, hash: data)
       end
     end
-
-    def symbolize_keys!(hash)
-      hash.keys.each do |key|
-        hash[(key.to_sym rescue key)] = hash.delete(key)
-      end
-    end
-
   end
 
   class EmptyDataScope
