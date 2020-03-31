@@ -1,6 +1,6 @@
 [![Gem Version](https://badge.fury.io/rb/lm_docstache.svg)](http://badge.fury.io/rb/lm_docstache)
 
-#LM-Docstache
+# LM-Docstache
 
 Lawmatics' templating utility for generating dynamic docx files.
 
