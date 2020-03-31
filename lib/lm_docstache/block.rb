@@ -31,7 +31,7 @@ module LMDocstache
       type == :conditional
     end
 
-    def self.find_all(name:, data:, elements:, inverted:, condition: nil)
+    def self.find_all(name:, data:, elements:, inverted:, condition: nil, ignore_missing: true)
       if elements.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}#{condition ? " when #{condition}" : ''}\}\}.+?\{\{\/#{name}\}\}/m)
         if elements.any? { |e| e.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}#{condition ? " when #{condition}" : ''}\}\}.+?\{\{\/#{name}\}\}/m) }
           matches = elements.select { |e| e.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}#{condition ? " when #{condition}" : ''}\}\}.+?\{\{\/#{name}\}\}/m) }
@@ -49,7 +49,7 @@ module LMDocstache
           return Block.new(name: name, data: data, opening_element: opening, content_elements: content, closing_element: closing, inverted: inverted, condition: condition)
         end
       else
-        raise "Block not found in given elements"
+        raise "Block not found in given elements" unless ignore_missing
       end
     end
   end

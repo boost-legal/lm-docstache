@@ -22,7 +22,7 @@ module LMDocstache
         Block.find_all(name: block[1], elements: @content.elements, data: @data, inverted: inverted, condition: block[2])
       end.flatten
       found_blocks.each do |block|
-        expand_and_replace_block(block)
+        expand_and_replace_block(block) if block.present?
       end
     end
 
