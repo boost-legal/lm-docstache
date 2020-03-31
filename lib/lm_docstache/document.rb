@@ -1,4 +1,4 @@
-module Docstache
+module LMDocstache
   class Document
     def initialize(*paths)
       raise ArgumentError if paths.empty?
@@ -54,7 +54,7 @@ module Docstache
     def render_file(output, data={})
       rendered_documents = Hash[
         @documents.map do |(path, document)|
-          [path, Docstache::Renderer.new(document.dup, data).render]
+          [path, LMDocstache::Renderer.new(document.dup, data).render]
         end
       ]
       buffer = zip_buffer(rendered_documents)
@@ -64,7 +64,7 @@ module Docstache
     def render_stream(data={})
       rendered_documents = Hash[
         @documents.map do |(path, document)|
-          [path, Docstache::Renderer.new(document.dup, data).render]
+          [path, LMDocstache::Renderer.new(document.dup, data).render]
         end
       ]
       buffer = zip_buffer(rendered_documents)

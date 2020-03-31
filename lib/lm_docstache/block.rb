@@ -1,4 +1,4 @@
-module Docstache
+module LMDocstache
   class Block
     attr_reader :name, :opening_element, :content_elements, :closing_element, :inverted, :condition
     def initialize(name:, data:, opening_element:, content_elements:, closing_element:, inverted:, condition: nil)

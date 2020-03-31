@@ -1,4 +1,4 @@
-module Docstache
+module LMDocstache
   class DataScope
 
     def initialize(data, parent=EmptyDataScope.new)

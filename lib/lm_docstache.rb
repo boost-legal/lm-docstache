@@ -1,11 +1,9 @@
 require 'nokogiri'
 require 'zip'
-require "docstache/version"
-require "docstache/data_scope"
-require "docstache/document"
-require "docstache/block"
-require "docstache/renderer"
+require "lm_docstache/version"
+require "lm_docstache/data_scope"
+require "lm_docstache/document"
+require "lm_docstache/block"
+require "lm_docstache/renderer"
 
-module Docstache
-  #noop
-end
+module LMDocstache; end

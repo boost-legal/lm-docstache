@@ -4,7 +4,7 @@ require "lm_docstache/version"
 
 Gem::Specification.new do |s|
   s.name        = "lm_docstache"
-  s.version     = Docstache::VERSION
+  s.version     = LMDocstache::VERSION
   s.authors     = ["Roey Chasman", "Will Cosgrove"]
   s.email       = ["roey@lawmatics.com", "will@willcosgrove.com"]
   s.homepage    = "https://www.lawmatics.com"

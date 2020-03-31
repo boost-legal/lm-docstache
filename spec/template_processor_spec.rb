@@ -1,7 +1,7 @@
 # require 'spec_helper'
 # require 'nokogiri'
 #
-# module Docstache
+# module LMDocstache
 #   module TestData
 #     DATA = {
 #       teacher: 'Priya Vora',
@@ -30,7 +30,7 @@
 #   end
 # end
 #
-# describe Docstache::Render do
+# describe LMDocstache::Render do
 #   let(:data) { Marshal.load(Marshal.dump(DocxTemplater::TestData::DATA)) } # deep copy
 #   let(:base_path) { SPEC_BASE_PATH.join('example_input') }
 #   let(:xml) { File.read("#{base_path}/word/document.xml") }

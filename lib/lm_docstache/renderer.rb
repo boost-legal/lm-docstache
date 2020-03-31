@@ -1,4 +1,4 @@
-module Docstache
+module LMDocstache
   class Renderer
     BLOCK_REGEX = /\{\{([\#\^])([\w\.]+)(?:\swhen\s(.+?\s?(?:==|~=)\s?.+?))?\}\}.+?\{\{\/\k<2>\}\}/m
 
