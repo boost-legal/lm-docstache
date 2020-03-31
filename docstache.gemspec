@@ -3,11 +3,11 @@ $:.push File.expand_path("../lib", __FILE__)
 require "docstache/version"
 
 Gem::Specification.new do |s|
-  s.name        = "docstache"
+  s.name        = "lm_docstache"
   s.version     = Docstache::VERSION
-  s.authors     = ["Will Cosgrove"]
-  s.email       = ["will@willcosgrove.com"]
-  s.homepage    = "https://github.com/willcosgrove/docstache"
+  s.authors     = ["Roey Chasman", "Will Cosgrove"]
+  s.email       = ["roey@lawmatics.com", "will@willcosgrove.com"]
+  s.homepage    = "https://www.lawmatics.com"
   s.summary     = %q{Merges Hash of Data into Word docx template files using mustache syntax}
   s.description = %q{Integrates data into MS Word docx template files. Processing supports loops and replacement of strings of data both outside and within loops.}
   s.license     = 'MIT'
