@@ -49,7 +49,8 @@ module Docstache
 
     def evaluate_condition(condition, data)
       condition = condition.match(/(.+?)\s*(==|~=)\s*(.+)/)
-      if condition[2] == "=="
+      case condition[2]
+      when "=="
         # Equality condition
         left = evaluate_expression(condition[1], data)
         right = evaluate_expression(condition[3], data)
