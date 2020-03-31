@@ -17,10 +17,10 @@ module LMDocstache
 
     def find_and_expand_blocks
       blocks = @content.text.scan(BLOCK_REGEX)
-      found_blocks = blocks.uniq.map do |block|
+      found_blocks = blocks.uniq.flat_map do |block|
         inverted = block[0] == "^"
         Block.find_all(name: block[1], elements: @content.elements, data: @data, inverted: inverted, condition: block[2])
-      end.flatten
+      end
       found_blocks.each do |block|
         expand_and_replace_block(block) if block.present?
       end

@@ -35,7 +35,7 @@ module LMDocstache
       if elements.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}#{condition ? " when #{condition}" : ''}\}\}.+?\{\{\/#{name}\}\}/m)
         if elements.any? { |e| e.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}#{condition ? " when #{condition}" : ''}\}\}.+?\{\{\/#{name}\}\}/m) }
           matches = elements.select { |e| e.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}#{condition ? " when #{condition}" : ''}\}\}.+?\{\{\/#{name}\}\}/m) }
-          finds = matches.map { |match| find_all(name: name, data: data, elements: match.elements, inverted: inverted, condition: condition) }.flatten
+          finds = matches.flat_map { |match| find_all(name: name, data: data, elements: match.elements, inverted: inverted, condition: condition) }
           return finds
         else
           opening = elements.select { |e| e.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}#{condition ? " when #{condition}" : ''}\}\}/) }.first
