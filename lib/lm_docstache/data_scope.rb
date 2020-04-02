@@ -10,37 +10,15 @@ module LMDocstache
       hash.symbolize_keys!
       tokens = key.split('.')
       if tokens.length == 1
-        if key.match(/(\w+)\[(\d+)\]/)
-          result = hash.fetch($1.to_sym) { |key| @parent.get(original_key) }
-          result = result[$2.to_i] if result.respond_to?(:[])
-        else
-          result = hash.fetch(key.to_sym) { |key| @parent.get(original_key) }
-        end
-        unless condition.present? && result.respond_to?(:select)
-          return result
+        result = hash.fetch(key.to_sym) { |_| @parent.get(original_key) }
+        unless result.respond_to?(:select)
+          return result if evaluate_condition(condition, result)
         else
           return result.select { |el| evaluate_condition(condition, el) }
         end
       elsif tokens.length > 1
         key = tokens.shift
-        if key.match(/(\w+)\[(\d+)\]/)
-          if hash.has_key?($1.to_sym)
-            collection = hash.fetch($1.to_sym)
-            if collection.respond_to?(:[])
-              subhash = collection[$2.to_i]
-            else
-              subhash = collection
-            end
-          else
-            return @parent.get(original_key)
-          end
-        else
-          if hash.has_key?(key.to_sym)
-            subhash = hash.fetch(key.to_sym)
-          else
-            return @parent.get(original_key)
-          end
-        end
+        subhash = hash.fetch(key.to_sym) { |_| @parent.get(original_key) }
         return get(tokens.join('.'), hash: subhash, original_key: original_key)
       end
     end
