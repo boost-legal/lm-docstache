@@ -46,28 +46,27 @@ Assume `classrooom = "Rm 202"`
 SHOW ME
 {{/classroom}}
 ```
+```
+{{#classroom == "NON EXISTANT"}}
+DONT SHOW ME
+{{/classroom}}
+```
 
 Without Quotes:
 ```
 {{#classroom == Rm 202}}
-SHOW ME 2
+SHOW ME
 {{/classroom}}
 ```
 
 With Negation
 ```
 {{^classroom == "NON EXISTANT"}}
-SHOW ME 3
+SHOW ME
 {{/classroom}}
 ```
-
 ```
 {{^classroom == Rm 202}}
 DONT SHOW ME
-{{/classroom}}
-```
-```
-{{#classroom == "NON EXISTANT"}}
-DONT SHOW ME 2
 {{/classroom}}
 ```
