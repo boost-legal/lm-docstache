@@ -26,26 +26,31 @@ module LMDocstache
     private
 
     def evaluate_condition(condition, data)
-      condition = condition.match(/(.+?)\s*(==|~=)\s*(.+)/)
-      case condition[2]
+      return true if condition.nil?
+      condition = condition.match(/(==|~=)\s*(.+)/)
+      operator = condition[1]
+      expression = condition[2]
+      case condition[1]
       when "=="
         # Equality condition
-        left = evaluate_expression(condition[1], data)
-        right = evaluate_expression(condition[3], data)
-        return left == right
+        expression = evaluate_expression(expression, data)
+        return data == expression
       else
         # Matches condition
-        left = get(condition[1], hash: data)
-        right = Regex.new(condition[3].match(/\/(.+)\//)[1])
-        return left.match(right)
+        expression = evaluate_expression(expression, data)
+        right = Regex.new(expression.match(/\/(.+)\//)[1])
+        binding.pry
+        return data.match(right)
       end
     end
 
     def evaluate_expression(expression, data)
-      if expression.match(/(["'“])(.+)(\k<1>|”)/)
+      if expression.match(/(["'“]?)(.+)(\k<1>|”)/)
         $2
-      else
+      elsif data.respond_to?(:select)
         get(expression, hash: data)
+      else
+        false
       end
     end
   end

@@ -29,7 +29,7 @@ module LMDocstache
     def expand_and_replace_block(block)
       case block.type
       when :conditional
-        case condition = @data.get(block.name)
+        case condition = @data.get(block.name, condition: block.condition)
         when Array
           condition = !condition.empty?
         else
