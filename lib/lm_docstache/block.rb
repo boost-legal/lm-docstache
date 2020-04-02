@@ -32,16 +32,22 @@ module LMDocstache
     end
 
     def self.find_all(name:, data:, elements:, inverted:, condition: nil, ignore_missing: true)
-      if elements.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}#{condition ? " when #{condition}" : ''}\}\}.+?\{\{\/#{name}\}\}/m)
-        if elements.any? { |e| e.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}#{condition ? " when #{condition}" : ''}\}\}.+?\{\{\/#{name}\}\}/m) }
-          matches = elements.select { |e| e.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}#{condition ? " when #{condition}" : ''}\}\}.+?\{\{\/#{name}\}\}/m) }
-          finds = matches.flat_map { |match| find_all(name: name, data: data, elements: match.elements, inverted: inverted, condition: condition) }
-          return finds
+      inverted_op = inverted ? '\^' : '\#'
+      full_tag_regex = /\{\{#{inverted_op}(#{name})\s?#{condition}\}\}.+?\{\{\/\k<1>\}\}/m
+      start_tag_regex = /\{\{#{inverted_op}#{name}\s?#{condition}\}\}/m
+      close_tag_regex = /\{\{\/#{name}\}\}/s
+
+      if elements.text.match(full_tag_regex)
+        if elements.any? { |e| e.text.match(full_tag_regex) }
+          matches = elements.select { |e| e.text.match(full_tag_regex) }
+          return matches.flat_map do |match|
+            find_all(name: name, data: data, elements: match.elements, inverted: inverted, condition: condition)
+          end
         else
-          opening = elements.select { |e| e.text.match(/\{\{#{inverted ? '\^' : '\#'}#{name}#{condition ? " when #{condition}" : ''}\}\}/) }.first
+          opening = elements.find { |e| e.text.match(start_tag_regex) }
           content = []
           next_sibling = opening.next
-          while !next_sibling.text.match(/\{\{\/#{name}\}\}/)
+          while !next_sibling.text.match(close_tag_regex)
             content << next_sibling
             next_sibling = next_sibling.next
           end
