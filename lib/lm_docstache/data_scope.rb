@@ -7,7 +7,7 @@ module LMDocstache
     end
 
     def get(key, hash: @data, original_key: key, condition: nil)
-      hash.symbolize_keys!
+      symbolize_keys!(hash)
       tokens = key.split('.')
       if tokens.length == 1
         result = hash.fetch(key.to_sym) { |_| @parent.get(original_key) }
@@ -24,6 +24,10 @@ module LMDocstache
     end
 
     private
+
+    def symbolize_keys!(hash)
+      hash.transform_keys!{ |key| key.to_sym rescue key }
+    end
 
     def evaluate_condition(condition, data)
       return true if condition.nil?
