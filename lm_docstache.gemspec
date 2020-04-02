@@ -20,6 +20,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'nokogiri', '~> 1.6'
   s.add_runtime_dependency 'rubyzip', '~> 1.1'
 
-  s.add_development_dependency 'rspec', '~> 3.1.0'
-  s.add_development_dependency 'pry-byebug', '~> 1'
+  s.add_development_dependency 'rspec', '>= 3.1.0'
+  s.add_development_dependency 'pry-byebug', '>= 1'
 end
