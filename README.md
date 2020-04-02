@@ -37,9 +37,37 @@ SHOW ME
 DONT SHOW ME
 {{/true_cond}}
 ```
+
 ### If
+Assume `classrooom = "Rm 202"`
+
 ```
-{{#classroom when classroom == “Rm 202”}}
+{{#classroom == “Rm 202”}}
 SHOW ME
+{{/classroom}}
+```
+
+Without Quotes:
+```
+{{#classroom == Rm 202}}
+SHOW ME 2
+{{/classroom}}
+```
+
+With Negation
+```
+{{^classroom == "NON EXISTANT"}}
+SHOW ME 3
+{{/classroom}}
+```
+
+```
+{{^classroom == Rm 202}}
+DONT SHOW ME
+{{/classroom}}
+```
+```
+{{#classroom == "NON EXISTANT"}}
+DONT SHOW ME 2
 {{/classroom}}
 ```
