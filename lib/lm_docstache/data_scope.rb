@@ -43,7 +43,6 @@ module LMDocstache
         # Matches condition
         expression = evaluate_expression(expression, data)
         right = Regex.new(expression.match(/\/(.+)\//)[1])
-        binding.pry
         return data.match(right)
       end
     end
