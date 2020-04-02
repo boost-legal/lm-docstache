@@ -58,7 +58,7 @@ module LMDocstache
         end
       ]
       buffer = zip_buffer(rendered_documents)
-      File.open(output, "w") {|f| f.write buffer.string}
+      File.open(output, "w") { |f| f.write buffer.string }
     end
 
     def render_stream(data={})
@@ -99,7 +99,7 @@ module LMDocstache
     end
 
     def zip_buffer(documents)
-      buffer = Zip::OutputStream.write_buffer do |out|
+      Zip::OutputStream.write_buffer do |out|
         @zip_file.entries.each do |e|
           unless documents.keys.include?(e.name)
             out.put_next_entry(e.name)
@@ -111,7 +111,6 @@ module LMDocstache
           out.write(document.to_xml(indent: 0).gsub("\n", ""))
         end
       end
-      return buffer
     end
 
     def page_break
