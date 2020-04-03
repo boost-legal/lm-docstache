@@ -31,16 +31,17 @@ module LMDocstache
 
     def evaluate_condition(condition, data)
       return true if condition.nil?
-      condition = condition.match(/(==|~=)\s*(.+)/)
+      condition = condition.match(/(==|!=|~=)\s*(.+)/)
       operator = condition[1]
       expression = condition[2]
       case condition[1]
       when "=="
-        # Equality condition
         expression = evaluate_expression(expression, data)
         return data == expression
+      when "!="
+        expression = evaluate_expression(expression, data)
+        return data != expression
       else
-        # Matches condition
         expression = evaluate_expression(expression, data)
         right = Regex.new(expression.match(/\/(.+)\//)[1])
         return data.match(right)
