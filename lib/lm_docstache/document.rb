@@ -46,9 +46,9 @@ module LMDocstache
       tags.length != usable_tags.length
     end
 
-    def save
+    def save(path = @path)
       buffer = zip_buffer(@documents)
-      File.open(@path, "w") { |f| f.write buffer.string }
+      File.open(path, "w") { |f| f.write buffer.string }
     end
 
     def render_file(output, data={})
