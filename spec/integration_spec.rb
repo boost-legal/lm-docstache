@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'active_support/core_ext/object/blank.rb'
 
 module LMDocstache
   module TestData
@@ -43,17 +44,25 @@ describe 'integration test', integration: true do
     Dir.mkdir(output_dir)
   end
 
-  context 'should process in incoming docx' do
-    it 'Loads the input file' do
+  context 'should process that incoming docx' do
+    it 'loads the input file' do
       expect(document).to_not be_nil
     end
 
-    it 'Generates output file with the same contents as the input file' do
+    it 'generates output file with the same contents as the input file' do
       input_entries = Zip::File.open(input_file) { |z| z.map(&:name) }
       document.save(output_file)
       output_entries = Zip::File.open(output_file) { |z| z.map(&:name) }
 
       expect(input_entries - output_entries).to be_empty
     end
+
+      require 'pry'
+    it 'fixes nested xml errors breaking tags' do
+      expect(document.send(:problem_paragraphs)).to_not be_empty
+      document.fix_errors
+      expect(document.send(:problem_paragraphs)).to be_empty
+    end
+
   end
 end
