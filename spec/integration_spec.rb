@@ -57,7 +57,6 @@ describe 'integration test', integration: true do
       expect(input_entries - output_entries).to be_empty
     end
 
-      require 'pry'
     it 'fixes nested xml errors breaking tags' do
       expect(document.send(:problem_paragraphs)).to_not be_empty
       document.fix_errors
