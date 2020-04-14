@@ -63,5 +63,8 @@ describe 'integration test', integration: true do
       expect(document.send(:problem_paragraphs)).to be_empty
     end
 
+    it 'renders file using data' do
+      document.render_file(output_file, data)
+    end
   end
 end
