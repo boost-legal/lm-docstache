@@ -63,6 +63,14 @@ describe 'integration test', integration: true do
       expect(document.send(:problem_paragraphs)).to be_empty
     end
 
+    it 'has the expected amount of usable tags' do
+      expect(document.usable_tags.count).to be(27)
+    end
+
+    it 'has the expected amount of unique tag names' do
+      expect(document.usable_tag_names.count).to be(16)
+    end
+
     it 'renders file using data' do
       document.render_file(output_file, data)
     end
