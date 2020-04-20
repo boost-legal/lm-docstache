@@ -29,6 +29,13 @@ module LMDocstache
       end
     end
 
+    def usable_tag_names
+      self.usable_tags.map do |tag|
+        tag.scan(/\{\{[\/#^]?(.+?)(?:(\s((?:==|~=))\s?.+?))?\}\}/)
+        $1
+      end.compact.uniq
+    end
+
     def unusable_tags
       unusable_tags = tags
       usable_tags.each do |usable_tag|
