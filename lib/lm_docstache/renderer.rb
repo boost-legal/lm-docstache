@@ -23,42 +23,11 @@ module LMDocstache
       end
       found_blocks.each do |block|
         if block.inline
-          handle_inline_conditional(block) if block.present?
+          replace_conditionals(block)
         else
           expand_and_replace_block(block) if block.present?
         end
       end
-    end
-
-    def handle_inline_conditional(block)
-      replace_conditional(block, "HEY!!")
-# binding.pry
-#       block.content_elements.css('w|t').each do |text_el|
-#         if !(results = text_el.text.scan(/\{\{([\w\.]+)\}\}/).flatten).empty?
-#           rendered_string = text_el.text
-#           results.each do |r|
-#             rendered_string.gsub!("{{#{r}}}", "boo")
-#           end
-#           text_el.content = rendered_string
-#         end
-#       end
-#       return elements
-
-      # case block.type
-      # when :conditional
-      #   case condition = @data.get(block.name, condition: block.condition)
-      #   when Array
-      #     condition = !condition.empty?
-      #   else
-      #     condition = !!condition
-      #   end
-      #   condition = !condition if block.inverted
-      #   unless condition
-      #     block.content_elements.each(&:unlink) # instead of unlinking, replace the text!
-      #   end
-      # when :loop
-      #   # TODO handle inline loops
-      # end
     end
 
     def expand_and_replace_block(block)
@@ -95,36 +64,45 @@ module LMDocstache
       block.closing_element.unlink
     end
 
-    def replace_conditional(block, data)
+    def replace_conditionals(block)
+      case condition = @data.get(block.name, condition: block.condition)
+      when Array
+        condition = !condition.empty?
+      else
+        condition = !!condition
+      end
+      condition = !condition if block.inverted
+
       @content.css('w|t').each do |text_el|
         start_tag = "##{block.name}#{block.condition}"
         end_tag = "/#{block.name}"
 
         rendered_string = text_el.text
 
-        if !(results = rendered_string.scan(/\{\{\#(.*?)\}\}/).flatten).empty?
+        if !(results = rendered_string.scan(/{{#(.*?)}}(.*?){{\/(.*?)}}/)).empty?
           results.each do |r|
-            rendered_string.sub!("{{##{r}}}", "")
-            rendered_string.sub!("{{/#{block.name}}}", "")
+            if condition
+              rendered_string.sub!("{{##{r[0]}}}", "")
+              rendered_string.sub!("{{/#{r[2]}}}", "")
+            else
+              rendered_string.sub!("{{##{r[0]}}}#{r[1]}{{/#{r[2]}}}", "")
+            end
           end
         end
 
-        if !(results1 = rendered_string.scan(/\{\{\^(.*?)\}\}/).flatten).empty?
-          results1.each do |r|
-            rendered_string.sub!("{{^#{r}}}", "")
-            rendered_string.sub!("{{/#{block.name}}}", "")
+        # TODO the only difference in this one is carat instead of pound. combine them
+        if !(results = rendered_string.scan(/{{\^(.*?)}}(.*?){{\/(.*?)}}/)).empty?
+          results.each do |r|
+            if !condition
+              rendered_string.sub!("{{^#{r[0]}}}", "")
+              rendered_string.sub!("{{/#{r[2]}}}", "")
+            else
+              rendered_string.sub!("{{^#{r[0]}}}#{r[1]}{{/#{r[2]}}}", "")
+            end
           end
         end
 
         text_el.content = rendered_string
-
-        # if !(results = text_el.text.scan(/\{\{([\w\.]+)\}\}/).flatten).empty?
-        #   rendered_string = text_el.text
-        #   results.each do |r|
-        #     rendered_string.gsub!("{{#{r}}}", data.get(r).to_s)
-        #   end
-        #   text_el.content = rendered_string
-        # end
       end
     end
 
