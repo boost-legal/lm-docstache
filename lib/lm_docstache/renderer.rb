@@ -72,9 +72,6 @@ module LMDocstache
       condition = get_condition(block)
 
       @content.css('w|t').each do |text_el|
-        start_tag = "##{block.name}#{block.condition}"
-        end_tag = "/#{block.name}"
-
         rendered_string = text_el.text
 
         if !(results = rendered_string.scan(/{{#(.*?)}}(.*?){{\/(.*?)}}/)).empty?
