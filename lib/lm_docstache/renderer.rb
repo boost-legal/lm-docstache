@@ -88,7 +88,8 @@ module LMDocstache
           end
         end
 
-        # TODO the only difference in this one is carat instead of pound. combine them
+        # the only difference in this code block is caret instead of pound in three places,
+        # and the condition being inverted. maybe combine them?
         if !(results = rendered_string.scan(/{{\^(.*?)}}(.*?){{\/(.*?)}}/)).empty?
           results.each do |r|
             if !condition
