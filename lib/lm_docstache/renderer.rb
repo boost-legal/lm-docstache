@@ -43,13 +43,7 @@ module LMDocstache
     def expand_and_replace_block(block)
       case block.type
       when :conditional
-        case condition = @data.get(block.name, condition: block.condition)
-        when Array
-          condition = !condition.empty?
-        else
-          condition = !!condition
-        end
-        condition = !condition if block.inverted
+        condition = get_condition(block)
         unless condition
           block.content_elements.each(&:unlink)
         end
@@ -75,13 +69,7 @@ module LMDocstache
     end
 
     def replace_conditionals(block)
-      case condition = @data.get(block.name, condition: block.condition)
-      when Array
-        condition = !condition.empty?
-      else
-        condition = !!condition
-      end
-      condition = !condition if block.inverted
+      condition = get_condition(block)
 
       @content.css('w|t').each do |text_el|
         start_tag = "##{block.name}#{block.condition}"
@@ -127,6 +115,20 @@ module LMDocstache
         end
       end
       return elements
+    end
+
+    private
+
+    def get_condition(block)
+      case condition = @data.get(block.name, condition: block.condition)
+      when Array
+        condition = !condition.empty?
+      else
+        condition = !!condition
+      end
+      condition = !condition if block.inverted
+
+      condition
     end
   end
 end
