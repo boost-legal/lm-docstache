@@ -41,7 +41,7 @@ describe LMDocstache::Renderer do
   end
 
   it 'should handle inline conditional tags' do
-    result_text = render_docx("Refer to the matter as {{#gender == 'Male'}}he{{/gender}}{{^gender == 'Male'}}she{{/gender}} please")
+    result_text = render_docx("Refer to the matter as {{#gender == Male}}he{{/gender}}{{^gender == Male}}she{{/gender}} please")
     expected_text = "Refer to the matter as he please"
     expect(result_text).to eq(expected_text)
   end
