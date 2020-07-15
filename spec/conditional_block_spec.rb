@@ -64,7 +64,7 @@ describe LMDocstache::Renderer do
     expect(result_text).to eq(expected_text)
   end
 
-  it 'should handle inline conditional tags with tags inside' do
+  it 'should handle multiline conditional tags' do
     text = [
       "Refer to the matter as",
       "{{#gender == 'Male'}}",
