@@ -89,7 +89,6 @@ module LMDocstache
         end
       ]
       buffer = zip_buffer(rendered_documents)
-      puts "writing to #{output}"
       File.open(output, "w") { |f| f.write buffer.string }
     end
 
