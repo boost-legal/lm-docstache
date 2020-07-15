@@ -13,6 +13,16 @@ module LMDocstache
       return @content
     end
 
+    def render_replace(text)
+      @content.css('w|t').each do |text_el|
+        rendered_string = text_el.text
+        if !(results = rendered_string.scan(/\|-Lawmatics Test-\|/)).empty?
+          text_el.content = text
+        end
+      end
+      return @content
+    end
+
     private
 
     def find_and_expand_blocks
@@ -22,20 +32,18 @@ module LMDocstache
         Block.find_all(name: block[1], elements: @content.elements, data: @data, inverted: inverted, condition: block[2])
       end
       found_blocks.each do |block|
-        expand_and_replace_block(block) if block.present?
+        if block.inline
+          replace_conditionals(block)
+        else
+          expand_and_replace_block(block) if block.present?
+        end
       end
     end
 
     def expand_and_replace_block(block)
       case block.type
       when :conditional
-        case condition = @data.get(block.name, condition: block.condition)
-        when Array
-          condition = !condition.empty?
-        else
-          condition = !!condition
-        end
-        condition = !condition if block.inverted
+        condition = get_condition(block)
         unless condition
           block.content_elements.each(&:unlink)
         end
@@ -60,6 +68,40 @@ module LMDocstache
       block.closing_element.unlink
     end
 
+    def replace_conditionals(block)
+      condition = get_condition(block)
+
+      @content.css('w|t').each do |text_el|
+        rendered_string = text_el.text
+
+        if !(results = rendered_string.scan(/{{#(.*?)}}(.*?){{\/(.*?)}}/)).empty?
+          results.each do |r|
+            if condition
+              rendered_string.sub!("{{##{r[0]}}}", "")
+              rendered_string.sub!("{{/#{r[2]}}}", "")
+            else
+              rendered_string.sub!("{{##{r[0]}}}#{r[1]}{{/#{r[2]}}}", "")
+            end
+          end
+        end
+
+        # the only difference in this code block is caret instead of pound in three places,
+        # and the condition being inverted. maybe combine them?
+        if !(results = rendered_string.scan(/{{\^(.*?)}}(.*?){{\/(.*?)}}/)).empty?
+          results.each do |r|
+            if !condition
+              rendered_string.sub!("{{^#{r[0]}}}", "")
+              rendered_string.sub!("{{/#{r[2]}}}", "")
+            else
+              rendered_string.sub!("{{^#{r[0]}}}#{r[1]}{{/#{r[2]}}}", "")
+            end
+          end
+        end
+
+        text_el.content = rendered_string
+      end
+    end
+
     def replace_tags(elements, data)
       elements.css('w|t').each do |text_el|
         if !(results = text_el.text.scan(/\{\{([\w\.]+)\}\}/).flatten).empty?
@@ -71,6 +113,20 @@ module LMDocstache
         end
       end
       return elements
+    end
+
+    private
+
+    def get_condition(block)
+      case condition = @data.get(block.name, condition: block.condition)
+      when Array
+        condition = !condition.empty?
+      else
+        condition = !!condition
+      end
+      condition = !condition if block.inverted
+
+      condition
     end
   end
 end
