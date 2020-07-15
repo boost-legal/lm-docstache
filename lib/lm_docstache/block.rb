@@ -1,7 +1,7 @@
 module LMDocstache
   class Block
-    attr_reader :name, :opening_element, :content_elements, :closing_element, :inverted, :condition
-    def initialize(name:, data:, opening_element:, content_elements:, closing_element:, inverted:, condition: nil)
+    attr_reader :name, :opening_element, :content_elements, :closing_element, :inverted, :condition, :inline
+    def initialize(name:, data:, opening_element:, content_elements:, closing_element:, inverted:, condition: nil, inline: false)
       @name = name
       @data = data
       @opening_element = opening_element
@@ -9,6 +9,7 @@ module LMDocstache
       @closing_element = closing_element
       @inverted = inverted
       @condition = condition
+      @inline = inline
     end
 
     def type
@@ -31,7 +32,7 @@ module LMDocstache
       type == :conditional
     end
 
-    def self.find_all(name:, data:, elements:, inverted:, condition: nil, ignore_missing: true)
+    def self.find_all(name:, data:, elements:, inverted:, condition: nil, ignore_missing: true, child: false)
       inverted_op = inverted ? '\^' : '\#'
       full_tag_regex = /\{\{#{inverted_op}(#{name})\s?#{condition}\}\}.+?\{\{\/\k<1>\}\}/m
       start_tag_regex = /\{\{#{inverted_op}#{name}\s?#{condition}\}\}/m
@@ -41,7 +42,11 @@ module LMDocstache
         if elements.any? { |e| e.text.match(full_tag_regex) }
           matches = elements.select { |e| e.text.match(full_tag_regex) }
           return matches.flat_map do |match|
-            find_all(name: name, data: data, elements: match.elements, inverted: inverted, condition: condition)
+            if match.elements.any?
+              find_all(name: name, data: data, elements: match.elements, inverted: inverted, condition: condition, child: true)
+            else
+              extract_block_from_element(name: name, data: data, element: match, inverted: inverted, condition: condition)
+            end
           end
         else
           opening = elements.find { |e| e.text.match(start_tag_regex) }
@@ -57,6 +62,10 @@ module LMDocstache
       else
         raise "Block not found in given elements" unless ignore_missing
       end
+    end
+
+    def self.extract_block_from_element(name: name, data: data, element: element, inverted: inverted, condition: condition)
+      return Block.new(name: name, data: data, opening_element: element.parent.previous, content_elements: [element.parent], closing_element: element.parent.next, inverted: inverted, condition: condition, inline: true)
     end
   end
 end
