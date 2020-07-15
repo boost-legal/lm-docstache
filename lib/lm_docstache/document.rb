@@ -82,6 +82,17 @@ module LMDocstache
       File.open(output, "w") { |f| f.write buffer.string }
     end
 
+    def render_replace(output, text)
+      rendered_documents = Hash[
+        @documents.map do |(path, document)|
+          [path, LMDocstache::Renderer.new(document.dup, {}).render_replace(text)]
+        end
+      ]
+      buffer = zip_buffer(rendered_documents)
+      puts "writing to #{output}"
+      File.open(output, "w") { |f| f.write buffer.string }
+    end
+
     def render_stream(data={})
       rendered_documents = Hash[
         @documents.map do |(path, document)|
