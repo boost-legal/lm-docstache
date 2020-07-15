@@ -15,20 +15,6 @@ module LMDocstache
       find_documents_to_interpolate
     end
 
-    def render_xml(data={})
-      # @documents.values.flat_map do |document|
-      #   document.text
-      # end
-
-      rendered_documents = Hash[
-        @documents.map do |(path, document)|
-          [path, LMDocstache::Renderer.new(document.dup, data).render]
-        end
-      ]
-
-      rendered_documents
-    end
-
     def tags
       @documents.values.flat_map do |document|
         document.text.strip.scan(/\{\{.+?\}\}/)
@@ -101,6 +87,16 @@ module LMDocstache
       buffer = zip_buffer(rendered_documents)
       buffer.rewind
       return buffer.sysread
+    end
+
+    def render_xml(data={})
+      rendered_documents = Hash[
+        @documents.map do |(path, document)|
+          [path, LMDocstache::Renderer.new(document.dup, data).render]
+        end
+      ]
+
+      rendered_documents
     end
 
     private
