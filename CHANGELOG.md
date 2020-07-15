@@ -1,7 +1,11 @@
 # Changelog
 
+## 1.2.0
+* Add support for inline conditionals.
+* Add some tests.
+
 ## 1.0.0
-  Fork the Docstache codebase and rename all references to LMDocstache.
+* Fork the Docstache codebase and rename all references to LMDocstache.
 
 ## 0.3.2
 * [b3b66a0cd7ae67834cdbe7c18cefdb1498bcc5ab] I'm an idiot.  Fixed an error in the `Document#unusable_tags` method
