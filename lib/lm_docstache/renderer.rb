@@ -13,6 +13,16 @@ module LMDocstache
       return @content
     end
 
+    def render_replace(text)
+      @content.css('w|t').each do |text_el|
+        rendered_string = text_el.text
+        if !(results = rendered_string.scan(/\|-Lawmatics Test-\|/)).empty?
+          text_el.content = text
+        end
+      end
+      return @content
+    end
+
     private
 
     def find_and_expand_blocks
