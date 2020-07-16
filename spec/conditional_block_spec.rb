@@ -77,6 +77,12 @@ describe LMDocstache::Renderer do
     expect(result_text).to eq(expected_text)
   end
 
+  it 'should handle multiple types of conditionals in one line' do
+    result_text = render_docx("be{{#gender == Male}} he {{/gender}}{{#num == 1}}1{{/num}}{{#num == 2}}2{{/num}} and {{^num == 2}}!2{{/num}}{{^num == 1}}!1{{/num}} please")
+    expected_text = "be he 2 and !1 please"
+    expect(result_text).to eq(expected_text)
+  end
+
   it 'should handle multiline conditional tags' do
     text = [
       "Refer to the matter as",
