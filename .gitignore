@@ -2,3 +2,4 @@
 spec/example_input/tmp
 .idea/
 *.gem
+Gemfile.lock
