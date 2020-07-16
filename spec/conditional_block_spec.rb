@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'nokogiri'
 
 module LMDocstache
-  module TestData
+  module BlockTestData
     DATA = {
       gender: 'Male',
       num: '2',
@@ -13,7 +13,7 @@ module LMDocstache
 end
 
 describe LMDocstache::Renderer do
-  let(:data) { Marshal.load(Marshal.dump(LMDocstache::TestData::DATA)) } # deep copy
+  let(:data) { Marshal.load(Marshal.dump(LMDocstache::BlockTestData::DATA)) } # deep copy
   let(:base_path) { SPEC_BASE_PATH.join('example_input') }
   let(:blank_doc_path) { "#{base_path}/blank.docx" }
   let(:blank_doc) { LMDocstache::Document.new(blank_doc_path) }
