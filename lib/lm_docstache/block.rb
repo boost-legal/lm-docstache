@@ -45,7 +45,7 @@ module LMDocstache
             if match.elements.any?
               find_all(name: name, data: data, elements: match.elements, inverted: inverted, condition: condition, child: true)
             else
-              extract_block_from_element(name: name, data: data, element: match, inverted: inverted, condition: condition)
+              extract_block_from_element(name, data, match, inverted, condition)
             end
           end
         else
@@ -64,7 +64,7 @@ module LMDocstache
       end
     end
 
-    def self.extract_block_from_element(name: name, data: data, element: element, inverted: inverted, condition: condition)
+    def self.extract_block_from_element(name, data, element, inverted, condition)
       return Block.new(name: name, data: data, opening_element: element.parent.previous, content_elements: [element.parent], closing_element: element.parent.next, inverted: inverted, condition: condition, inline: true)
     end
   end
