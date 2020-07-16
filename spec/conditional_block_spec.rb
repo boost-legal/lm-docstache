@@ -64,6 +64,12 @@ describe LMDocstache::Renderer do
     expect(result_text).to eq(expected_text)
   end
 
+  it 'should handle multiple positive checks in one line' do
+    result_text = render_docx("Refer to the matter as {{#gender == 'Male'}}him{{/gender}}{{#gender == 'Female'}}her{{/gender}} please")
+    expected_text = "Refer to the matter as him please"
+    expect(result_text).to eq(expected_text)
+  end
+
   it 'should handle multiline conditional tags' do
     text = [
       "Refer to the matter as",
