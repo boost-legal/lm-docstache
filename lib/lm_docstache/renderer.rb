@@ -43,7 +43,7 @@ module LMDocstache
     def expand_and_replace_block(block)
       case block.type
       when :conditional
-        condition = get_condition(block)
+        condition = get_condition(block.name, block.condition, block.inverted)
         unless condition
           block.content_elements.each(&:unlink)
         end
@@ -69,13 +69,13 @@ module LMDocstache
     end
 
     def replace_conditionals(block)
-      condition = get_condition(block)
-
       @content.css('w|t').each do |text_el|
         rendered_string = text_el.text
 
         if !(results = rendered_string.scan(/{{#(.*?)}}(.*?){{\/(.*?)}}/)).empty?
           results.each do |r|
+            vals = r[0].split('==')
+            condition = get_condition(vals[0].strip, "== #{vals[1]}")
             if condition
               rendered_string.sub!("{{##{r[0]}}}", "")
               rendered_string.sub!("{{/#{r[2]}}}", "")
@@ -86,10 +86,12 @@ module LMDocstache
         end
 
         # the only difference in this code block is caret instead of pound in three places,
-        # and the condition being inverted. maybe combine them?
+        # the inverted value passed to get_condition, and the condition being inverted. maybe combine them?
         if !(results = rendered_string.scan(/{{\^(.*?)}}(.*?){{\/(.*?)}}/)).empty?
           results.each do |r|
-            if !condition
+            vals = r[0].split('==')
+            condition = get_condition(vals[0].strip, "== #{vals[1]}", true)
+            if condition
               rendered_string.sub!("{{^#{r[0]}}}", "")
               rendered_string.sub!("{{/#{r[2]}}}", "")
             else
@@ -117,14 +119,14 @@ module LMDocstache
 
     private
 
-    def get_condition(block)
-      case condition = @data.get(block.name, condition: block.condition)
+    def get_condition(name, condition, inverted = false)
+      case condition = @data.get(name, condition: condition)
       when Array
         condition = !condition.empty?
       else
         condition = !!condition
       end
-      condition = !condition if block.inverted
+      condition = !condition if inverted
 
       condition
     end
