@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.2
+* Remove uneccessary runtime dependency on active support.
+
 ## 1.2.1
 * Fix inline conditional issues such as no support for multi conditionals.
 
