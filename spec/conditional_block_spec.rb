@@ -5,6 +5,7 @@ module LMDocstache
   module TestData
     DATA = {
       gender: 'Male',
+      num: '2',
       first_name: 'Hector',
       last_name: 'Jones'
     }
@@ -67,6 +68,12 @@ describe LMDocstache::Renderer do
   it 'should handle multiple positive checks in one line' do
     result_text = render_docx("Refer to the matter as {{#gender == 'Male'}}him{{/gender}}{{#gender == 'Female'}}her{{/gender}} please")
     expected_text = "Refer to the matter as him please"
+    expect(result_text).to eq(expected_text)
+  end
+
+  it 'should handle multiple positive checks and multiple negative checks in one line' do
+    result_text = render_docx("be {{#num == 1}}1{{/num}}{{#num == 2}}2{{/num}} and {{^num == 2}}!2{{/num}}{{^num == 1}}!1{{/num}} please")
+    expected_text = "be 2 and !1 please"
     expect(result_text).to eq(expected_text)
   end
 
