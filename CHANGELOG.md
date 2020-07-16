@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.1
+* Fix inline conditional issues such as no support for multi conditionals.
+
 ## 1.2.0
 * Add support for inline conditionals.
 * Add some tests.
