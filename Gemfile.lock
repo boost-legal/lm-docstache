@@ -1,8 +1,7 @@
 PATH
   remote: .
   specs:
-    lm_docstache (1.2.0)
-      activesupport (= 6.0.3.2)
+    lm_docstache (1.2.1)
       nokogiri (~> 1.6)
       rubyzip (~> 1.1)
 
@@ -55,6 +54,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  activesupport (= 6.0.3.2)
   lm_docstache!
   pry-byebug (>= 1)
   rspec (>= 3.1.0)
