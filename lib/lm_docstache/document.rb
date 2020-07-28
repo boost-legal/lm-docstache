@@ -111,7 +111,12 @@ module LMDocstache
 
     def flatten_paragraph(p)
       runs = p.css('w|r')
+
       host_run = runs.shift
+      until host_run.at_css('w|t').present? || runs.size == 0 do
+        host_run = runs.shift
+      end
+
       runs.each do |run|
         host_run.at_css('w|t').content += run.text
         run.unlink
