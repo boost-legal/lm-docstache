@@ -106,7 +106,7 @@ module LMDocstache
 
     def replace_tags(elements, data)
       elements.css('w|t').each do |text_el|
-        if !(results = text_el.text.scan(/\{\{([\w\.]+)\}\}/).flatten).empty?
+        if !(results = text_el.text.scan(/\{\{([\w\.\|]+)\}\}/).flatten).empty?
           rendered_string = text_el.text
           results.each do |r|
             rendered_string.gsub!("{{#{r}}}", data.get(r).to_s)
