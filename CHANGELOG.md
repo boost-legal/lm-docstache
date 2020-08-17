@@ -1,7 +1,9 @@
 # Changelog
+## 1.2.4
+* Add support for pipe character in merge tags so we can use as a modifier for the context of merge tag.
 
 ## 1.2.3
-* Fix issue where some paragraphs do not contain text as their first block. If this is the case, we just use the first block that does contain text
+* Fix issue where some paragraphs do not contain text as their first block. If this is the case, we just use the first block that does contain text.
 
 ## 1.2.2
 * Remove uneccessary runtime dependency on active support.
