@@ -15,6 +15,36 @@ module LMDocstache
       find_documents_to_interpolate
     end
 
+    def signature_tags
+      @documents.values.flat_map do |document|
+        document.text.strip.scan(/\[\[sig_.+?\]\]/)
+      end
+    end
+
+    def usable_signature_tags
+      @documents.values.flat_map do |document|
+        document.css('w|t')
+          .select { |tag| tag.text =~ /\[\[sig_.+?\]\]/ }
+          .flat_map { |tag| tag.text.scan(/\[\[sig_.+?\]\]/) }
+      end
+    end
+
+    def usable_signature_tag_names
+      self.usable_signature_tags.map do |tag|
+        tag.scan(/\[\[sig_(.+?)\]\]/)
+        $1
+      end.compact.uniq
+    end
+
+    def unusable_signature_tags
+      unusable_signature_tags = signature_tags
+      unusable_signature_tags.each do |usable_tag|
+        index = unusable_signature_tags.index(usable_tag)
+        unusable_signature_tags.delete_at(index) if index
+      end
+      return unusable_signature_tags
+    end
+
     def tags
       @documents.values.flat_map do |document|
         document.text.strip.scan(/\{\{.+?\}\}/)
