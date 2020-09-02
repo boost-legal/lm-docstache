@@ -2,14 +2,16 @@ module LMDocstache
   class Renderer
     BLOCK_REGEX = /\{\{([\#\^])([\w\.]+)(?:(\s(?:==|~=)\s?.+?))?\}\}.+?\{\{\/\k<2>\}\}/m
 
-    def initialize(xml, data)
+    def initialize(xml, data, remove_signature_tags = false)
       @content = xml
       @data = DataScope.new(data)
+      @remove_signature_tags = remove_signature_tags
     end
 
     def render
       find_and_expand_blocks
       replace_tags(@content, @data)
+      remove_signature_tags(@content) if @remove_signature_tags
       return @content
     end
 
@@ -110,6 +112,20 @@ module LMDocstache
           rendered_string = text_el.text
           results.each do |r|
             rendered_string.gsub!("{{#{r}}}", data.get(r).to_s)
+          end
+          text_el.content = rendered_string
+        end
+      end
+      return elements
+    end
+
+    def remove_signature_tags(elements)
+      elements.css('w|t').each do |text_el|
+        if !(results = text_el.text.scan(/\[\[sig_(.+?)\]\]/).flatten).empty?
+          rendered_string = text_el.text
+          results.each do |r|
+            padding = "".ljust(r.length + 8, " ")
+            rendered_string.gsub!("[[sig_#{r}]]", padding)
           end
           text_el.content = rendered_string
         end
