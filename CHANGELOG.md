@@ -1,4 +1,7 @@
 # Changelog
+## 1.3.0
+* Add support for e-signature tags
+
 ## 1.2.4
 * Add support for pipe character in merge tags so we can use as a modifier for the context of merge tag.
 
