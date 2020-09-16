@@ -132,9 +132,7 @@ module LMDocstache
     private
 
     def problem_paragraphs
-      pp '######### problem_paragaph'
       unusable_tags.flat_map do |tag|
-        pp tag
         @documents.values.inject([]) do |tags, document|
           tags + document.css('w|p').select {|t| t.text =~ /#{Regexp.escape(tag)}/}
         end
