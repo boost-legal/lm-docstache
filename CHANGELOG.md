@@ -1,4 +1,7 @@
 # Changelog
+## 1.3.1
+* Fix bug searching accross xml nodes for e-signature tags.
+
 ## 1.3.0
 * Add support for e-signature tags
 
