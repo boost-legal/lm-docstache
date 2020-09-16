@@ -68,7 +68,7 @@ describe 'integration test', integration: true do
     end
 
     it 'has the expected amount of signature tags' do
-      expect(document.signature_tags.count).to be(4)
+      expect(document.signature_tags.count).to be(6)
     end
 
     it 'has the expected amount of usable signature tags' do
