@@ -120,7 +120,7 @@ module LMDocstache
     end
 
     def remove_signature_tags(elements)
-      elements.css('w|t').each do |text_el|
+      elements.css('w|p').each do |text_el|
         if !(results = text_el.text.scan(/\[\[sig_(.+?)\]\]/).flatten).empty?
           rendered_string = text_el.text
           results.each do |r|
