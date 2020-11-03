@@ -1,5 +1,7 @@
 module LMDocstache
   class Document
+    TAGS_REGEXP = /\{\{.+?\}\}/
+    SIGNATURE_REGEXP = /(\{\{(sig|sigfirm|date|check|text|initial)\|(req|noreq)\|(.+?)\}\})/
     def initialize(*paths)
       raise ArgumentError if paths.empty?
       @path = paths.shift
@@ -17,22 +19,26 @@ module LMDocstache
 
     def signature_tags
       @documents.values.flat_map do |document|
-        document.text.strip.scan(/\[\[sig_.+?\]\]/)
+        document.text.strip.scan(SIGNATURE_REGEXP)
+          .map {|r| r.first }
       end
     end
 
     def usable_signature_tags
       @documents.values.flat_map do |document|
         document.css('w|p')
-          .select { |tag| tag.text =~ /\[\[sig_.+?\]\]/ }
-          .flat_map { |tag| tag.text.scan(/\[\[sig_.+?\]\]/) }
+          .select { |tag| tag.text =~ SIGNATURE_REGEXP }
+          .flat_map { |tag|
+            tag.text.scan(SIGNATURE_REGEXP)
+              .map {|r| r.first }
+          }
       end
     end
 
     def usable_signature_tag_names
       self.usable_signature_tags.map do |tag|
-        tag.scan(/\[\[sig_(.+?)\]\]/)
-        $1
+        tag.scan(SIGNATURE_REGEXP)
+          .map {|r| r.first }
       end.compact.uniq
     end
 
@@ -47,15 +53,16 @@ module LMDocstache
 
     def tags
       @documents.values.flat_map do |document|
-        document.text.strip.scan(/\{\{.+?\}\}/)
+        document.text.strip.scan(TAGS_REGEXP)
+          .select {|t| !(t =~ SIGNATURE_REGEXP)}
       end
     end
 
     def usable_tags
       @documents.values.flat_map do |document|
         document.css('w|t')
-          .select { |tag| tag.text =~ /\{\{.+?\}\}/ }
-          .flat_map { |tag| tag.text.scan(/\{\{.+?\}\}/) }
+          .select { |tag| tag.text =~ TAGS_REGEXP && !(tag.text =~ SIGNATURE_REGEXP) }
+          .flat_map { |tag| tag.text.scan(TAGS_REGEXP) }
       end
     end
 
