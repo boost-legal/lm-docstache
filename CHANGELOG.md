@@ -1,5 +1,5 @@
 # Changelog
-## 1.3.3
+## 1.3.4
 * Change signature signs identifiers to be braces instead of brackets.
 
 ## 1.3.2
