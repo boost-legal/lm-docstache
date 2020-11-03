@@ -1,7 +1,7 @@
 module LMDocstache
   class Document
     TAGS_REGEXP = /\{\{.+?\}\}/
-    SIGNATURE_REGEXP = /(\{\{(sig|sigfirm|date|check|text|initial)\|(req|noreq)\|(.+?)\}\})/
+    ROLES_REGEXP = /(\{\{(sig|sigfirm|date|check|text|initial)\|(req|noreq)\|(.+?)\}\})/
     def initialize(*paths)
       raise ArgumentError if paths.empty?
       @path = paths.shift
@@ -17,33 +17,36 @@ module LMDocstache
       find_documents_to_interpolate
     end
 
-    def signature_tags
+    def role_tags
       @documents.values.flat_map do |document|
-        document.text.strip.scan(SIGNATURE_REGEXP)
+        document.text.strip.scan(ROLES_REGEXP)
           .map {|r| r.first }
       end
     end
 
-    def usable_signature_tags
+    def usable_role_tags
       @documents.values.flat_map do |document|
         document.css('w|p')
-          .select { |tag| tag.text =~ SIGNATURE_REGEXP }
+          .select { |tag| tag.text =~ ROLES_REGEXP }
           .flat_map { |tag|
-            tag.text.scan(SIGNATURE_REGEXP)
+            tag.text.scan(ROLES_REGEXP)
               .map {|r| r.first }
           }
       end
     end
 
-    def usable_signature_tag_names
-      self.usable_signature_tags.map do |tag|
-        tag.scan(SIGNATURE_REGEXP)
-          .map {|r| r.first }
-      end.compact.uniq
+    def unique_role_tag_names
+      @documents.values.flat_map do |document|
+        document.css('w|p')
+          .select { |tag| tag.text =~ ROLES_REGEXP }
+          .flat_map { |tag|
+            tag.text.scan(ROLES_REGEXP).map {|r| r[3].strip }
+          }.compact.uniq
+      end
     end
 
-    def unusable_signature_tags
-      unusable_signature_tags = signature_tags
+    def unusable_role_tags
+      unusable_signature_tags = role_tags
       unusable_signature_tags.each do |usable_tag|
         index = unusable_signature_tags.index(usable_tag)
         unusable_signature_tags.delete_at(index) if index
@@ -54,14 +57,14 @@ module LMDocstache
     def tags
       @documents.values.flat_map do |document|
         document.text.strip.scan(TAGS_REGEXP)
-          .select {|t| !(t =~ SIGNATURE_REGEXP)}
+          .select {|t| !(t =~ ROLES_REGEXP)}
       end
     end
 
     def usable_tags
       @documents.values.flat_map do |document|
         document.css('w|t')
-          .select { |tag| tag.text =~ TAGS_REGEXP && !(tag.text =~ SIGNATURE_REGEXP) }
+          .select { |tag| tag.text =~ TAGS_REGEXP && !(tag.text =~ ROLES_REGEXP) }
           .flat_map { |tag| tag.text.scan(TAGS_REGEXP) }
       end
     end

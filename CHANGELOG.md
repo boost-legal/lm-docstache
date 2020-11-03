@@ -1,4 +1,7 @@
 # Changelog
+## 1.3.5
+* Replace signatures by roles. Add unique roles name collector. 
+
 ## 1.3.4
 * Change signature signs identifiers to be braces instead of brackets.
 
