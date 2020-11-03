@@ -1,4 +1,7 @@
 # Changelog
+## 1.3.3
+* Change signature signs identifiers to be braces instead of brackets.
+
 ## 1.3.2
 * Fix bug replacing signature tags accross xml nodes.
 
