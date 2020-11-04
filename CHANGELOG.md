@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.8
+* Fix bug on Renderer Class remove_role_tags method that wasn't replacing the roles.
+
 ## 1.3.7
 * Fix bug on renderer returning invalid data.
 * Refactor Renderer Class remove_role_tags method to standardize, following other remove methods.
