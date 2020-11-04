@@ -35,7 +35,7 @@ end
 describe 'integration test', integration: true do
   let(:data) { LMDocstache::TestData::DATA }
   let(:base_path) { SPEC_BASE_PATH.join('example_input') }
-  let(:input_file) { "#{base_path}/ExampleTemplate2.docx" }
+  let(:input_file) { "#{base_path}/ExampleTemplate.docx" }
   let(:output_dir) { "#{base_path}/tmp" }
   let(:output_file) { "#{output_dir}/IntegrationTestOutput.docx" }
   let(:document) { LMDocstache::Document.new(input_file) }

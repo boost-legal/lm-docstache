@@ -1,4 +1,10 @@
 # Changelog
+
+## 1.3.6
+* Change remove signature tags to be remove role tags.
+* Fix method remove role tags to be following the new regexp rules.
+* Remove not necessary unique_role_tag_names method. 
+
 ## 1.3.5
 * Replace signatures by roles. Add unique roles name collector. 
 
