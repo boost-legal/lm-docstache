@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.7
+* Fix bug on renderer returning invalid data.
+* Refactor Renderer Class remove_role_tags method to standardize, following other remove methods.
+ 
 ## 1.3.6
 * Change remove signature tags to be remove role tags.
 * Fix method remove role tags to be following the new regexp rules.
