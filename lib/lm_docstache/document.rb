@@ -35,19 +35,9 @@ module LMDocstache
       end
     end
 
-    def unique_role_tag_names
-      @documents.values.flat_map do |document|
-        document.css('w|p')
-          .select { |tag| tag.text =~ ROLES_REGEXP }
-          .flat_map { |tag|
-            tag.text.scan(ROLES_REGEXP).map {|r| r[3].strip }
-          }.compact.uniq
-      end
-    end
-
     def unusable_role_tags
       unusable_signature_tags = role_tags
-      unusable_signature_tags.each do |usable_tag|
+      usable_role_tags.each do |usable_tag|
         index = unusable_signature_tags.index(usable_tag)
         unusable_signature_tags.delete_at(index) if index
       end
@@ -98,10 +88,10 @@ module LMDocstache
       File.open(path, "w") { |f| f.write buffer.string }
     end
 
-    def render_file(output, data={}, remove_signature_tags = false)
+    def render_file(output, data={}, remove_role_tags = false)
       rendered_documents = Hash[
         @documents.map do |(path, document)|
-          [path, LMDocstache::Renderer.new(document.dup, data, remove_signature_tags).render]
+          [path, LMDocstache::Renderer.new(document.dup, data, remove_role_tags).render]
         end
       ]
       buffer = zip_buffer(rendered_documents)

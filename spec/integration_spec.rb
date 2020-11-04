@@ -71,10 +71,6 @@ describe 'integration test', integration: true do
       expect(document.role_tags.count).to be(6)
     end
 
-    it 'has the expected amount of uniq role tags' do
-      expect(document.unique_role_tag_names.count).to be(5)
-    end
-
     it 'has the expected amount of usable roles tags' do
       expect(document.usable_role_tags.count).to be(6)
     end
