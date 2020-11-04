@@ -119,13 +119,12 @@ module LMDocstache
 
     def remove_role_tags
       @content.css('w|p').each do |text_el|
-        results = text_el.text.scan(Document::ROLES_REGEXP)
+        results = text_el.text.scan(Document::ROLES_REGEXP).map {|r| r.first }
         unless results.empty?
           rendered_string = text_el.text
           results.each do |result|
-            full_tag = result[0]
-            padding = "".ljust(full_tag.size, " ")
-            rendered_string.gsub!(full_tag, padding)
+            padding = "".ljust(result.size, " ")
+            rendered_string.gsub!(result, padding)
           end
           text_el.content = rendered_string
         end
