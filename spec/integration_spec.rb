@@ -72,6 +72,7 @@ describe 'integration test', integration: true do
     end
 
     it 'has the expected amount of usable roles tags' do
+      document.fix_errors
       expect(document.usable_role_tags.count).to be(6)
     end
 
