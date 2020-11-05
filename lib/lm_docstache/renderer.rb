@@ -10,7 +10,7 @@ module LMDocstache
 
     def render
       find_and_expand_blocks
-      replace_tags(@data)
+      replace_tags(@content, @data)
       remove_role_tags if @remove_role_tags
       @content
     end
@@ -105,9 +105,9 @@ module LMDocstache
       end
     end
 
-    def replace_tags(data)
-      @content.css('w|t').each do |text_el|
-        if !(results = text_el.text.scan(/\{\{([\w\.\|]+)\}\}/).flatten).empty?
+    def replace_tags(elements, data)
+      elements.css('w|t').select {|t| !(t.text =~ Document::ROLES_REGEXP)}.each do |text_el|
+        if !(results = text_el.text.scan(/\{\{([\w\.\|]+)\}\}/).flatten).empty? &&
           rendered_string = text_el.text
           results.each do |r|
             rendered_string.gsub!("{{#{r}}}", data.get(r).to_s)
@@ -115,10 +115,11 @@ module LMDocstache
           text_el.content = rendered_string
         end
       end
+      elements
     end
 
     def remove_role_tags
-      @content.css('w|p').each do |text_el|
+      @content.css('w|t').each do |text_el|
         results = text_el.text.scan(Document::ROLES_REGEXP).map {|r| r.first }
         unless results.empty?
           rendered_string = text_el.text

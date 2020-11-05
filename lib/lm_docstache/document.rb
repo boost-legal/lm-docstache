@@ -26,7 +26,7 @@ module LMDocstache
 
     def usable_role_tags
       @documents.values.flat_map do |document|
-        document.css('w|p')
+        document.css('w|t')
           .select { |tag| tag.text =~ ROLES_REGEXP }
           .flat_map { |tag|
             tag.text.scan(ROLES_REGEXP)
@@ -47,20 +47,19 @@ module LMDocstache
     def tags
       @documents.values.flat_map do |document|
         document.text.strip.scan(TAGS_REGEXP)
-          .select {|t| !(t =~ ROLES_REGEXP)}
       end
     end
 
     def usable_tags
       @documents.values.flat_map do |document|
         document.css('w|t')
-          .select { |tag| tag.text =~ TAGS_REGEXP && !(tag.text =~ ROLES_REGEXP) }
+          .select { |tag| tag.text =~ TAGS_REGEXP }
           .flat_map { |tag| tag.text.scan(TAGS_REGEXP) }
       end
     end
 
     def usable_tag_names
-      self.usable_tags.map do |tag|
+      self.usable_tags.select {|t| !(t =~ ROLES_REGEXP)}.map do |tag|
         tag.scan(/\{\{[\/#^]?(.+?)(?:(\s((?:==|~=))\s?.+?))?\}\}/)
         $1
       end.compact.uniq

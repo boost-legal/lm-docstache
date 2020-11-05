@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.9
+* Fix bug on Renderer Class remove_role_tags method that was replacing the entire line instead of just the role tag.
+
 ## 1.3.8
 * Fix bug on Renderer Class remove_role_tags method that wasn't replacing the roles.
 
