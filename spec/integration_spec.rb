@@ -35,7 +35,7 @@ end
 describe 'integration test', integration: true do
   let(:data) { LMDocstache::TestData::DATA }
   let(:base_path) { SPEC_BASE_PATH.join('example_input') }
-  let(:input_file) { "#{base_path}/ExampleTemplate2.docx" }
+  let(:input_file) { "#{base_path}/ExampleTemplate.docx" }
   let(:output_dir) { "#{base_path}/tmp" }
   let(:output_file) { "#{output_dir}/IntegrationTestOutput.docx" }
   let(:document) { LMDocstache::Document.new(input_file) }
@@ -67,12 +67,13 @@ describe 'integration test', integration: true do
       expect(document.usable_tags.count).to be(30)
     end
 
-    it 'has the expected amount of signature tags' do
-      expect(document.signature_tags.count).to be(6)
+    it 'has the expected amount of role tags' do
+      expect(document.role_tags.count).to be(6)
     end
 
-    it 'has the expected amount of usable signature tags' do
-      expect(document.usable_signature_tags.count).to be(6)
+    it 'has the expected amount of usable roles tags' do
+      document.fix_errors
+      expect(document.usable_role_tags.count).to be(6)
     end
 
     it 'has the expected amount of unique tag names' do

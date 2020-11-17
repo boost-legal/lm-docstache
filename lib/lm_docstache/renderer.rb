@@ -2,27 +2,26 @@ module LMDocstache
   class Renderer
     BLOCK_REGEX = /\{\{([\#\^])([\w\.]+)(?:(\s(?:==|~=)\s?.+?))?\}\}.+?\{\{\/\k<2>\}\}/m
 
-    def initialize(xml, data, remove_signature_tags = false)
+    def initialize(xml, data, remove_role_tags = false)
       @content = xml
       @data = DataScope.new(data)
-      @remove_signature_tags = remove_signature_tags
+      @remove_role_tags = remove_role_tags
     end
 
     def render
       find_and_expand_blocks
       replace_tags(@content, @data)
-      remove_signature_tags(@content) if @remove_signature_tags
-      return @content
+      remove_role_tags if @remove_role_tags
+      @content
     end
 
     def render_replace(text)
       @content.css('w|t').each do |text_el|
-        rendered_string = text_el.text
-        if !(results = rendered_string.scan(/\|-Lawmatics Test-\|/)).empty?
+        if !(text_el.text.scan(/\|-Lawmatics Test-\|/)).empty?
           text_el.content = text
         end
       end
-      return @content
+      @content
     end
 
     private
@@ -35,7 +34,7 @@ module LMDocstache
       end
       found_blocks.each do |block|
         if block.inline
-          replace_conditionals(block)
+          replace_conditionals
         else
           expand_and_replace_block(block) if block.present?
         end
@@ -70,7 +69,7 @@ module LMDocstache
       block.closing_element.unlink
     end
 
-    def replace_conditionals(block)
+    def replace_conditionals
       @content.css('w|t').each do |text_el|
         rendered_string = text_el.text
 
@@ -107,8 +106,8 @@ module LMDocstache
     end
 
     def replace_tags(elements, data)
-      elements.css('w|t').each do |text_el|
-        if !(results = text_el.text.scan(/\{\{([\w\.\|]+)\}\}/).flatten).empty?
+      elements.css('w|t').select {|t| !(t.text =~ Document::ROLES_REGEXP)}.each do |text_el|
+        if !(results = text_el.text.scan(/\{\{([\w\.\|]+)\}\}/).flatten).empty? &&
           rendered_string = text_el.text
           results.each do |r|
             rendered_string.gsub!("{{#{r}}}", data.get(r).to_s)
@@ -116,21 +115,21 @@ module LMDocstache
           text_el.content = rendered_string
         end
       end
-      return elements
+      elements
     end
 
-    def remove_signature_tags(elements)
-      elements.css('w|p').each do |text_el|
-        if !(results = text_el.text.scan(/\[\[sig_(.+?)\]\]/).flatten).empty?
+    def remove_role_tags
+      @content.css('w|t').each do |text_el|
+        results = text_el.text.scan(Document::ROLES_REGEXP).map {|r| r.first }
+        unless results.empty?
           rendered_string = text_el.text
-          results.each do |r|
-            padding = "".ljust(r.length + 8, " ")
-            rendered_string.gsub!("[[sig_#{r}]]", padding)
+          results.each do |result|
+            padding = "".ljust(result.size, " ")
+            rendered_string.gsub!(result, padding)
           end
           text_el.content = rendered_string
         end
       end
-      return elements
     end
 
     private
