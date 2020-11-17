@@ -1,5 +1,7 @@
 module LMDocstache
   class Document
+    TAGS_REGEXP = /\{\{.+?\}\}/
+    ROLES_REGEXP = /(\{\{(sig|sigfirm|date|check|text|initial)\|(req|noreq)\|(.+?)\}\})/
     def initialize(*paths)
       raise ArgumentError if paths.empty?
       @path = paths.shift
@@ -15,30 +17,27 @@ module LMDocstache
       find_documents_to_interpolate
     end
 
-    def signature_tags
+    def role_tags
       @documents.values.flat_map do |document|
-        document.text.strip.scan(/\[\[sig_.+?\]\]/)
+        document.text.strip.scan(ROLES_REGEXP)
+          .map {|r| r.first }
       end
     end
 
-    def usable_signature_tags
+    def usable_role_tags
       @documents.values.flat_map do |document|
-        document.css('w|p')
-          .select { |tag| tag.text =~ /\[\[sig_.+?\]\]/ }
-          .flat_map { |tag| tag.text.scan(/\[\[sig_.+?\]\]/) }
+        document.css('w|t')
+          .select { |tag| tag.text =~ ROLES_REGEXP }
+          .flat_map { |tag|
+            tag.text.scan(ROLES_REGEXP)
+              .map {|r| r.first }
+          }
       end
     end
 
-    def usable_signature_tag_names
-      self.usable_signature_tags.map do |tag|
-        tag.scan(/\[\[sig_(.+?)\]\]/)
-        $1
-      end.compact.uniq
-    end
-
-    def unusable_signature_tags
-      unusable_signature_tags = signature_tags
-      unusable_signature_tags.each do |usable_tag|
+    def unusable_role_tags
+      unusable_signature_tags = role_tags
+      usable_role_tags.each do |usable_tag|
         index = unusable_signature_tags.index(usable_tag)
         unusable_signature_tags.delete_at(index) if index
       end
@@ -47,20 +46,20 @@ module LMDocstache
 
     def tags
       @documents.values.flat_map do |document|
-        document.text.strip.scan(/\{\{.+?\}\}/)
+        document.text.strip.scan(TAGS_REGEXP)
       end
     end
 
     def usable_tags
       @documents.values.flat_map do |document|
         document.css('w|t')
-          .select { |tag| tag.text =~ /\{\{.+?\}\}/ }
-          .flat_map { |tag| tag.text.scan(/\{\{.+?\}\}/) }
+          .select { |tag| tag.text =~ TAGS_REGEXP }
+          .flat_map { |tag| tag.text.scan(TAGS_REGEXP) }
       end
     end
 
     def usable_tag_names
-      self.usable_tags.map do |tag|
+      self.usable_tags.select {|t| !(t =~ ROLES_REGEXP)}.map do |tag|
         tag.scan(/\{\{[\/#^]?(.+?)(?:(\s((?:==|~=))\s?.+?))?\}\}/)
         $1
       end.compact.uniq
@@ -88,10 +87,10 @@ module LMDocstache
       File.open(path, "w") { |f| f.write buffer.string }
     end
 
-    def render_file(output, data={}, remove_signature_tags = false)
+    def render_file(output, data={}, remove_role_tags = false)
       rendered_documents = Hash[
         @documents.map do |(path, document)|
-          [path, LMDocstache::Renderer.new(document.dup, data, remove_signature_tags).render]
+          [path, LMDocstache::Renderer.new(document.dup, data, remove_role_tags).render]
         end
       ]
       buffer = zip_buffer(rendered_documents)
