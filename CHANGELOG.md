@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.10
+* Fix close tag encoding bug.
+
 ## 1.3.9
 * Fix bug on Renderer Class remove_role_tags method that was replacing the entire line instead of just the role tag.
 
@@ -9,14 +12,14 @@
 ## 1.3.7
 * Fix bug on renderer returning invalid data.
 * Refactor Renderer Class remove_role_tags method to standardize, following other remove methods.
- 
+
 ## 1.3.6
 * Change remove signature tags to be remove role tags.
 * Fix method remove role tags to be following the new regexp rules.
-* Remove not necessary unique_role_tag_names method. 
+* Remove not necessary unique_role_tag_names method.
 
 ## 1.3.5
-* Replace signatures by roles. Add unique roles name collector. 
+* Replace signatures by roles. Add unique roles name collector.
 
 ## 1.3.4
 * Change signature signs identifiers to be braces instead of brackets.
