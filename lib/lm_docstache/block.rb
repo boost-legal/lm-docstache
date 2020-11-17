@@ -36,7 +36,7 @@ module LMDocstache
       inverted_op = inverted ? '\^' : '\#'
       full_tag_regex = /\{\{#{inverted_op}(#{name})\s?#{condition}\}\}.+?\{\{\/\k<1>\}\}/m
       start_tag_regex = /\{\{#{inverted_op}#{name}\s?#{condition}\}\}/m
-      close_tag_regex = /\{\{\/#{name}\}\}/s
+      close_tag_regex = /\{\{\/#{name}\}\}/
 
       if elements.text.match(full_tag_regex)
         if elements.any? { |e| e.text.match(full_tag_regex) }
