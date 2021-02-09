@@ -36,7 +36,6 @@ module LMDocstache
       base_opts = { name: name, data: data, condition: condition, inverted: inverted }
       full_tag_regex = build_regex(:full, name, condition, operator)
 
-      byebug if name == 'custom_field_43458'
       if !ignore_missing && !elements.text.match(full_tag_regex)
         raise "Block not found in given elements"
       end
