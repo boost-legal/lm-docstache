@@ -1,3 +1,5 @@
+require 'strscan'
+
 module LMDocstache
   class Parser
     BLOCK_TYPE_PATTERN = '(#|\^)\s*'
@@ -35,32 +37,61 @@ module LMDocstache
         content = paragraph.text
         full_match = BLOCK_MATCHER.match(content)
         start_match = !full_match && BLOCK_START_MATCHER.match(content)
-        tag_names = []
+        conditions = []
 
         next unless full_match || start_match
 
         comprised_paragraphs =
           if full_match
-            tag_names = content.scan(BLOCK_MATCHER).map { |match| match[1] }
+            conditions = spawn_conditions(content)
             Nokogiri::XML::NodeSet.new(document, [paragraph])
           else
-            tag_names = [start_match[2]]
-            all_block_elements(tag_names.first, paragraph, paragraphs)
+            conditions = [condition_from_match_data(start_match)]
+            all_block_elements(start_match[2], paragraph, paragraphs)
           end
 
         # We'll ignore conditional blocks that have no correspondent closing tag
         next unless comprised_paragraphs
 
-        @blocks << ConditionalBlock.new(
-          elements: comprised_paragraphs,
-          tag_names: tag_names
-        )
+        conditions.each do |condition|
+          @blocks << ConditionalBlock.new(
+            elements: comprised_paragraphs,
+            condition: condition
+          )
+        end
       end
 
       @blocks
     end
 
     private
+
+    def condition_from_match_data(match)
+      Condition.new(
+        left_term: match[2],
+        right_term: match[4],
+        operator: match[3],
+        negation: match[1] == '^',
+        original_match: match[0]
+      )
+    end
+
+    def spawn_conditions(text)
+      conditions = []
+      scanner = StringScanner.new(text)
+
+      while scanner.scan_until(BLOCK_MATCHER)
+        conditions << Condition.new(
+          left_term: scanner.captures[1],
+          right_term: scanner.captures[3],
+          operator: scanner.captures[2],
+          negation: scanner.captures[0] == '^',
+          original_match: scanner.matched
+        )
+      end
+
+      conditions
+    end
 
     # Gets all the XML nodes that involve a non-inline conditonal block,
     # starting from the element that contains the conditional block start up
