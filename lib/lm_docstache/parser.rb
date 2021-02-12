@@ -90,7 +90,7 @@ module LMDocstache
         )
       end
 
-      conditions
+      conditions.uniq(&:original_match)
     end
 
     # Gets all the XML nodes that involve a non-inline conditonal block,
