@@ -16,7 +16,6 @@ module LMDocstache
     BLOCK_CLOSE_MATCHER = /{{\/\s*.+?\s*}}/
     BLOCK_MATCHER = /#{BLOCK_PATTERN}/
 
-
     attr_reader :document, :data, :blocks
 
     def initialize(document, data)
@@ -55,6 +54,13 @@ module LMDocstache
       end
 
       @blocks
+    end
+
+    def replace_conditional_blocks_in_document!
+      blocks.each do |conditional_block|
+        value = data[conditional_block.condition.left_term]
+        conditional_block.evaluate_with_value!(value)
+      end
     end
 
     private
