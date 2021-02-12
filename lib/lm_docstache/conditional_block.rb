@@ -1,14 +1,14 @@
 module LMDocstache
   class ConditionalBlock
-    attr_reader :element, :elements
+    attr_reader :elements, :tag_names
 
-    def initialize(element: nil, elements: [])
-      @element = element
+    def initialize(elements:, tag_names:)
       @elements = elements
+      @tag_names = tag_names
     end
 
     def inline?
-      !@element.nil?
+      @elements.size == 1
     end
   end
 end

@@ -17,38 +17,47 @@ module LMDocstache
     BLOCK_MATCHER = /#{BLOCK_PATTERN}/
 
 
-    attr_reader :document, :data, :blocks
+    attr_reader :document, :data
 
     def initialize(document, data)
       @document = document
       @data = data
-      @blocks = []
     end
 
     def find_blocks
-      return unless document.text =~ BLOCK_MATCHER
+      return @blocks if instance_variable_defined?(:@blocks)
+      return @blocks = [] unless document.text =~ BLOCK_MATCHER
 
-      paragraphs = document.css('w|t')
+      @blocks = []
+      paragraphs = document.css('w|p')
 
       while paragraph = paragraphs.shift do
         content = paragraph.text
         full_match = BLOCK_MATCHER.match(content)
         start_match = !full_match && BLOCK_START_MATCHER.match(content)
+        tag_names = []
 
         next unless full_match || start_match
 
-        if full_match
-          blocks << ConditionalBlock.new(element: paragraph)
-        else
-          tag_name = start_match[2]
-          block_elements = all_block_elements(tag_name, paragraph, paragraphs)
+        comprised_paragraphs =
+          if full_match
+            tag_names = content.scan(BLOCK_MATCHER).map { |match| match[1] }
+            Nokogiri::XML::NodeSet.new(document, [paragraph])
+          else
+            tag_names = [start_match[2]]
+            all_block_elements(tag_names.first, paragraph, paragraphs)
+          end
 
-          # We'll ignore conditional blocks that have no correspondent closing tag
-          next unless block_elements
+        # We'll ignore conditional blocks that have no correspondent closing tag
+        next unless comprised_paragraphs
 
-          blocks << ConditionalBlock.new(elements: block_elements)
-        end
+        @blocks << ConditionalBlock.new(
+          elements: comprised_paragraphs,
+          tag_names: tag_names
+        )
       end
+
+      @blocks
     end
 
     private
