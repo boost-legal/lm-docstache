@@ -19,7 +19,7 @@ module LMDocstache
     BLOCK_MATCHER = /#{BLOCK_PATTERN}/
 
 
-    attr_reader :document, :data
+    attr_reader :document, :data, :blocks
 
     def initialize(document, data)
       @document = document
