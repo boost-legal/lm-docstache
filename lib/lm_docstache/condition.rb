@@ -18,7 +18,7 @@ module LMDocstache
       end
     end
 
-    def evaluate(value)
+    def truthy?(value)
       result = value.to_s.send(operator, right_term)
       negation ? !result : result
     end

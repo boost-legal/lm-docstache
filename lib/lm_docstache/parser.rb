@@ -1,5 +1,3 @@
-require 'strscan'
-
 module LMDocstache
   class Parser
     BLOCK_TYPE_PATTERN = '(#|\^)\s*'
@@ -37,23 +35,18 @@ module LMDocstache
         content = paragraph.text
         full_match = BLOCK_MATCHER.match(content)
         start_match = !full_match && BLOCK_START_MATCHER.match(content)
-        conditions = []
 
         next unless full_match || start_match
 
-        comprised_paragraphs =
-          if full_match
-            conditions = spawn_conditions(content)
-            Nokogiri::XML::NodeSet.new(document, [paragraph])
-          else
-            conditions = [condition_from_match_data(start_match)]
-            all_block_elements(start_match[2], paragraph, paragraphs)
-          end
+        if full_match
+          @blocks.push(*ConditionalBlock.inline_blocks_from_paragraph(paragraph))
+        else
+          condition = condition_from_match_data(start_match)
+          comprised_paragraphs = all_block_elements(start_match[2], paragraph, paragraphs)
 
-        # We'll ignore conditional blocks that have no correspondent closing tag
-        next unless comprised_paragraphs
+          # We'll ignore conditional blocks that have no correspondent closing tag
+          next unless comprised_paragraphs
 
-        conditions.each do |condition|
           @blocks << ConditionalBlock.new(
             elements: comprised_paragraphs,
             condition: condition
@@ -74,23 +67,6 @@ module LMDocstache
         negation: match[1] == '^',
         original_match: match[0]
       )
-    end
-
-    def spawn_conditions(text)
-      conditions = []
-      scanner = StringScanner.new(text)
-
-      while scanner.scan_until(BLOCK_MATCHER)
-        conditions << Condition.new(
-          left_term: scanner.captures[1],
-          right_term: scanner.captures[3],
-          operator: scanner.captures[2],
-          negation: scanner.captures[0] == '^',
-          original_match: scanner.matched
-        )
-      end
-
-      conditions.uniq(&:original_match)
     end
 
     # Gets all the XML nodes that involve a non-inline conditonal block,
