@@ -1,10 +1,10 @@
 module LMDocstache
   class ConditionalBlock
-    attr_reader :elements, :tag_names
+    attr_reader :elements, :condition
 
-    def initialize(elements:, tag_names:)
+    def initialize(elements:, condition:)
       @elements = elements
-      @tag_names = tag_names
+      @condition = condition
     end
 
     def inline?
