@@ -56,6 +56,9 @@ module LMDocstache
       @blocks
     end
 
+    # Evaluates all conditional blocks inside the given XML document and keep or
+    # remove their content inside the document, depending on the truthiness of
+    # the condition on each given conditional block.
     def replace_conditional_blocks_in_document!
       blocks.each do |conditional_block|
         value = data[conditional_block.condition.left_term]
