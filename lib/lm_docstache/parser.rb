@@ -15,6 +15,7 @@ module LMDocstache
     BLOCK_START_MATCHER = /#{BLOCK_START_PATTERN}/
     BLOCK_CLOSE_MATCHER = /{{\/\s*.+?\s*}}/
     BLOCK_MATCHER = /#{BLOCK_PATTERN}/
+    VARIABLE_MATCHER = /{{([\w\.-]+)}}/
 
     attr_reader :document, :data, :blocks
 
@@ -22,6 +23,14 @@ module LMDocstache
       @document = document
       @data = data
     end
+
+    def parse_and_update_document!
+      find_blocks
+      replace_conditional_blocks_in_document!
+      replace_variables_in_document!
+    end
+
+    private
 
     def find_blocks
       return @blocks if instance_variable_defined?(:@blocks)
@@ -66,7 +75,18 @@ module LMDocstache
       end
     end
 
-    private
+    # It simply replaces all the referenced variables insithe document by their
+    # correspondent values provided in the attributes hash +data+.
+    def replace_variables_in_document!
+      document.css('w|t').each do |text_node|
+        text = text_node.text
+
+        next unless text =~ VARIABLE_MATCHER
+
+        text.gsub!(VARIABLE_MATCHER) { |_match| data[$1].to_s }
+        text_node.content = text
+      end
+    end
 
     def condition_from_match_data(match)
       Condition.new(
