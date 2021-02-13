@@ -19,15 +19,8 @@ module LMDocstache
 
     def evaluate_with_value!(value)
       return false if evaluated?
-      return false unless inline?
 
-      elements.first.css('w|t').each do |text_node|
-        replaced_text = text_node.text.gsub(condition.original_match) do |match|
-          condition.truthy?(value) ? content : ''
-        end
-
-        text_node.content = replaced_text
-      end
+      inline? ? evaluate_inline!(value) : evaluate_multiple_nodes!(value)
 
       @evaluated = true
     end
@@ -67,6 +60,44 @@ module LMDocstache
       end
 
       conditional_blocks
+    end
+
+    private
+
+    # Normally we expect that both starting and closing block paragraph elements
+    # contain only one +<w:r />+ and one +<w:t />+ elements. Nonetheless, we try
+    # to merge runs (w:r elements) together when they are direct siblings with
+    # same style.
+    def evaluate_multiple_nodes!(value)
+      merge_text_elements_if_possible!(elements.first)
+      merge_text_elements_if_possible!(elements.last)
+    end
+
+    def merge_text_elements_if_possible!(node)
+      return if (run_nodes = node.css('w|r')).size < 2
+
+      while run_node = run_nodes.pop
+        next if run_nodes.empty?
+
+        style_hash = run_node.at_css('w|rPr').inner_html.hash
+        previous_run_node = run_nodes.last
+
+        next if style_hash != previous_run_node.at_css('w|rPr').inner_html.hash
+
+        previous_text_node = previous_run_node.at_css('w|t')
+        previous_text_node.content = previous_text_node.text + run_node.text
+        run_node.unlink
+      end
+    end
+
+    def evaluate_inline!(value)
+      elements.first.css('w|t').each do |text_node|
+        replaced_text = text_node.text.gsub(condition.original_match) do |match|
+          condition.truthy?(value) ? content : ''
+        end
+
+        text_node.content = replaced_text
+      end
     end
   end
 end
