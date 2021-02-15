@@ -1,4 +1,5 @@
 [![Gem Version](https://badge.fury.io/rb/lm_docstache.svg)](http://badge.fury.io/rb/lm_docstache)
+![rspec](https://github.com/boost-legal/lm-docstache/workflows/Ruby/badge.svg)
 
 # LM-Docstache
 
