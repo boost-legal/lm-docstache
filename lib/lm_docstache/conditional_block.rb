@@ -39,9 +39,26 @@ module LMDocstache
       scanner = StringScanner.new(paragraph.text)
       matches = []
 
+      # This loop will iterate through all existing inline conditional blocks
+      # inside a given paragraph node.
       while scanner.scan_until(BLOCK_MATCHER)
         next if matches.include?(scanner.matched)
 
+        # +scanner.matched+ holds the whole regex-matched string, which could be
+        # represented by the following string:
+        #
+        #    {{#variable == value}}content{{/variable}}
+        #
+        # While +scanner.captures+ holds the group matches referenced in the
+        # +BLOCK_MATCHER+ regex, and it's basically comprised as the following:
+        #
+        #   [
+        #     '#',
+        #     'variable',
+        #     '==',
+        #     'value'
+        #   ]
+        #
         content = scanner.captures[4]
         condition = Condition.new(
           left_term: scanner.captures[1],
