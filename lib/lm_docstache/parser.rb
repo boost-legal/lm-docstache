@@ -21,7 +21,7 @@ module LMDocstache
 
     def initialize(document, data)
       @document = document
-      @data = data
+      @data = data.transform_keys(&:to_s)
     end
 
     def parse_and_update_document!
