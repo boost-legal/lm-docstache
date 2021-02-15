@@ -6,7 +6,6 @@ module LMDocstache
 
     def initialize(xml, data, remove_role_tags = false)
       @content = xml
-      @data = DataScope.new(data)
       @remove_role_tags = remove_role_tags
       @parser = Parser.new(xml, data)
     end
@@ -40,20 +39,6 @@ module LMDocstache
           text_el.content = rendered_string
         end
       end
-    end
-
-    private
-
-    def get_condition(name, condition, inverted = false)
-      case condition = @data.get(name, condition: condition)
-      when Array
-        condition = !condition.empty?
-      else
-        condition = !!condition
-      end
-      condition = !condition if inverted
-
-      condition
     end
   end
 end
