@@ -17,13 +17,6 @@ module LMDocstache
       find_documents_to_interpolate
     end
 
-    def role_tags
-      @documents.values.flat_map do |document|
-        document.text.strip.scan(ROLES_REGEXP)
-          .map {|r| r.first }
-      end
-    end
-
     def usable_role_tags
       @documents.values.flat_map do |document|
         document.css('w|t')
@@ -33,15 +26,6 @@ module LMDocstache
               .map {|r| r.first }
           }
       end
-    end
-
-    def unusable_role_tags
-      unusable_signature_tags = role_tags
-      usable_role_tags.each do |usable_tag|
-        index = unusable_signature_tags.index(usable_tag)
-        unusable_signature_tags.delete_at(index) if index
-      end
-      return unusable_signature_tags
     end
 
     def tags
