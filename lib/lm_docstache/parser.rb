@@ -88,6 +88,24 @@ module LMDocstache
       end
     end
 
+    # This method created a +Condition+ instance for a partial conditional
+    # block, which in this case it's the start block part of it, represented by
+    # a string like the following:
+    #
+    #    {{#variable == value}}
+    #
+    # @param match [MatchData]
+    #
+    # If converted into an +Array+, +match+ could be represented as follows:
+    #
+    #    [
+    #      '{{#variable == value}}',
+    #      '#',
+    #      'variable',
+    #      '==',
+    #      'value'
+    #    ]
+    #
     def condition_from_match_data(match)
       Condition.new(
         left_term: match[2],
