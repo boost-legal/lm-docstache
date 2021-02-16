@@ -6,7 +6,12 @@
 
 * Remove `Document#role_tags` and `Document#unusable_role_tags` methods;
 * Remove support for `:loop` block type;
-* Delete internal classes `DataScope` and `Block`.
+* Delete internal classes `DataScope` and `Block`;
+* Third parameter of `Renderer#render_file` has changed: it's not the boolean
+  field `remove_role_tags` anymore, but the `render_options` with default set
+  to `{}`, where thw two possible entries for it so far are `remove_role_tags`
+  (with the default set to `false`) and `skip_variable_patterns` (with the
+  default set to `[]`).
 
 ### Improvements and bugfixes
 
