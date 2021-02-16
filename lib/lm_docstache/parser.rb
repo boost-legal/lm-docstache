@@ -99,6 +99,7 @@ module LMDocstache
 
     def has_skippable_variable?(text)
       !!special_variable_replacements.find do |(pattern, value)|
+        pattern = pattern.is_a?(String) ? /{{#{pattern}}}/ : /{{#{pattern.to_s}}}/
         text =~ pattern && value == false
       end
     end
@@ -106,6 +107,7 @@ module LMDocstache
     def special_variable_replacement(text)
       Array(
         special_variable_replacements.find do |(pattern, value)|
+          pattern = pattern.is_a?(String) ? /{{#{pattern}}}/ : /{{#{pattern.to_s}}}/
           text =~ pattern && !!value
         end
       ).last
