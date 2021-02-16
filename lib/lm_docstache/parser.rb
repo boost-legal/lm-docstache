@@ -17,12 +17,12 @@ module LMDocstache
     BLOCK_MATCHER = /#{BLOCK_PATTERN}/
     VARIABLE_MATCHER = /{{([^#\^\/].*?)}}/
 
-    attr_reader :document, :data, :blocks, :skip_variable_patterns
+    attr_reader :document, :data, :blocks, :special_variable_replacements
 
     def initialize(document, data, options = {})
       @document = document
       @data = data.transform_keys(&:to_s)
-      @skip_variable_patterns = Array(options.fetch(:skip_variable_patterns, []))
+      @special_variable_replacements = options.fetch(:special_variable_replacements, {})
     end
 
     def parse_and_update_document!
@@ -83,11 +83,32 @@ module LMDocstache
         text = text_node.text
 
         next unless text =~ VARIABLE_MATCHER
-        next if skip_variable_patterns.find { |pattern| text =~ pattern }
+        next if has_skippable_variable?(text)
 
-        text.gsub!(VARIABLE_MATCHER) { |_match| data[$1].to_s }
+        variable_replacement = special_variable_replacement(text)
+
+        text.gsub!(VARIABLE_MATCHER) do |_match|
+          next data[$1].to_s unless variable_replacement
+
+          variable_replacement.is_a?(Proc) ? variable_replacement.call($1) : variable_replacement
+        end
+
         text_node.content = text
       end
+    end
+
+    def has_skippable_variable?(text)
+      !!special_variable_replacements.find do |(pattern, value)|
+        text =~ pattern && value == false
+      end
+    end
+
+    def special_variable_replacement(text)
+      Array(
+        special_variable_replacements.find do |(pattern, value)|
+          text =~ pattern && !!value
+        end
+      ).last
     end
 
     # This method created a +Condition+ instance for a partial conditional
