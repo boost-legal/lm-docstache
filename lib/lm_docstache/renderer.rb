@@ -2,12 +2,13 @@ module LMDocstache
   class Renderer
     BLOCK_REGEX = /\{\{([\#\^])([\w\.]+)(?:(\s(?:==|~=)\s?.+?))?\}\}.+?\{\{\/\k<2>\}\}/m
 
-    attr_reader :parser
+    attr_reader :parser, :options
 
-    def initialize(xml, data, remove_role_tags = false)
+    def initialize(xml, data, options = {})
       @content = xml
-      @remove_role_tags = remove_role_tags
-      @parser = Parser.new(xml, data)
+      @options = options
+      @remove_role_tags = options.fetch(:remove_role_tags, false)
+      @parser = Parser.new(xml, data, options.slice(:skip_variable_patterns))
     end
 
     def render

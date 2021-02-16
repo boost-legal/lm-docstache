@@ -71,10 +71,10 @@ module LMDocstache
       File.open(path, "w") { |f| f.write buffer.string }
     end
 
-    def render_file(output, data={}, remove_role_tags = false)
+    def render_file(output, data = {}, render_options = {})
       rendered_documents = Hash[
         @documents.map do |(path, document)|
-          [path, LMDocstache::Renderer.new(document.dup, data, remove_role_tags).render]
+          [path, LMDocstache::Renderer.new(document.dup, data, render_options).render]
         end
       ]
       buffer = zip_buffer(rendered_documents)
@@ -91,7 +91,7 @@ module LMDocstache
       File.open(output, "w") { |f| f.write buffer.string }
     end
 
-    def render_stream(data={})
+    def render_stream(data = {})
       rendered_documents = Hash[
         @documents.map do |(path, document)|
           [path, LMDocstache::Renderer.new(document.dup, data).render]
@@ -102,7 +102,7 @@ module LMDocstache
       return buffer.sysread
     end
 
-    def render_xml(data={})
+    def render_xml(data = {})
       rendered_documents = Hash[
         @documents.map do |(path, document)|
           [path, LMDocstache::Renderer.new(document.dup, data).render]
