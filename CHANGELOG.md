@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.0.0
+
+### Breaking changes
+
+* Remove `Document#role_tags` and `Document#unusable_role_tags` methods;
+* Remove support for `:loop` block type;
+* Delete internal classes `DataScope` and `Block`.
+
+### Improvements and bugfixes
+
+* Improve overall template parsing and evaluation, which makes conditional
+  blocks parsing more stable, reliable and bug free. There were lots of bugs
+  happening related to conditional blocks being ignored and not properly parsed.
+
 ## 1.3.10
 * Fix close tag encoding bug.
 
