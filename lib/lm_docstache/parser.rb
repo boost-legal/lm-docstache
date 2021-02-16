@@ -15,7 +15,7 @@ module LMDocstache
     BLOCK_START_MATCHER = /#{BLOCK_START_PATTERN}/
     BLOCK_CLOSE_MATCHER = /{{\/\s*.+?\s*}}/
     BLOCK_MATCHER = /#{BLOCK_PATTERN}/
-    VARIABLE_MATCHER = /{{([\w\.-]+)}}/
+    VARIABLE_MATCHER = /{{([^#\^\/].*?)}}/
 
     attr_reader :document, :data, :blocks
 
