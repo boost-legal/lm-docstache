@@ -17,11 +17,12 @@ module LMDocstache
     BLOCK_MATCHER = /#{BLOCK_PATTERN}/
     VARIABLE_MATCHER = /{{([^#\^\/].*?)}}/
 
-    attr_reader :document, :data, :blocks
+    attr_reader :document, :data, :blocks, :skip_variable_patterns
 
-    def initialize(document, data)
+    def initialize(document, data, options = {})
       @document = document
       @data = data.transform_keys(&:to_s)
+      @skip_variable_patterns = Array(options.fetch(:skip_variable_patterns, []))
     end
 
     def parse_and_update_document!
@@ -75,13 +76,14 @@ module LMDocstache
       end
     end
 
-    # It simply replaces all the referenced variables insithe document by their
+    # It simply replaces all the referenced variables inside document by their
     # correspondent values provided in the attributes hash +data+.
     def replace_variables_in_document!
       document.css('w|t').each do |text_node|
         text = text_node.text
 
         next unless text =~ VARIABLE_MATCHER
+        next if skip_variable_patterns.find { |pattern| text =~ pattern }
 
         text.gsub!(VARIABLE_MATCHER) { |_match| data[$1].to_s }
         text_node.content = text
