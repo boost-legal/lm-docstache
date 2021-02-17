@@ -19,6 +19,21 @@ module LMDocstache
 
     attr_reader :document, :data, :blocks, :special_variable_replacements
 
+    # The +special_variable_replacements+ option is a +Hash+ where the key is
+    # expected to be either a +Regexp+ or a +String+ representing the pattern
+    # of more specific type of variables that deserves a special treatment. The
+    # key must not contain the `{{}}` part, but only the pattern characters
+    # inside of it. As for the values of the +Hash+, it tells the replacement
+    # algorithm what to do with the matched string and there are the options:
+    #
+    # * +false+ -> in this case the matched variable will be kept without
+    #   replacement
+    # * +Proc+ -> when a +Proc+ instance is provided, it's expected it to be
+    #   able to receive the matched string and to return the string that will be
+    #   used as replacement
+    # * any other value that will be turned into a string -> in this case, this
+    #   will be the value that will replace the matched string
+    #
     def initialize(document, data, options = {})
       @document = document
       @data = data.transform_keys(&:to_s)
@@ -90,7 +105,9 @@ module LMDocstache
         text.gsub!(VARIABLE_MATCHER) do |_match|
           next data[$1].to_s unless variable_replacement
 
-          variable_replacement.is_a?(Proc) ? variable_replacement.call($1) : variable_replacement
+          variable_replacement.is_a?(Proc) ?
+            variable_replacement.call($1) :
+            variable_replacement.to_s
         end
 
         text_node.content = text
