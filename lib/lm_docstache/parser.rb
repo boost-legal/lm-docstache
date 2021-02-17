@@ -99,7 +99,7 @@ module LMDocstache
 
     def has_skippable_variable?(text)
       !!special_variable_replacements.find do |(pattern, value)|
-        pattern = pattern.is_a?(String) ? /{{#{pattern}}}/ : /{{#{pattern.to_s}}}/
+        pattern = pattern.is_a?(String) ? /{{#{pattern}}}/ : /{{#{pattern.source}}}/
         text =~ pattern && value == false
       end
     end
