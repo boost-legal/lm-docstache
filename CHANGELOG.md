@@ -9,9 +9,10 @@
 * Delete internal classes `DataScope` and `Block`;
 * Third parameter of `Renderer#render_file` has changed: it's not the boolean
   field `remove_role_tags` anymore, but the `render_options` with default set
-  to `{}`, where thw two possible entries for it so far are `remove_role_tags`
-  (with the default set to `false`) and `skip_variable_patterns` (with the
-  default set to `[]`).
+  to `{}`, where there is only one option for it so far, which is
+  `special_variable_replacements` (with default value also set to `{}`). For the
+  possible values for this `Hash` check the explanation for it on top of
+  `Parser#initialize`.
 
 ### Improvements and bugfixes
 
