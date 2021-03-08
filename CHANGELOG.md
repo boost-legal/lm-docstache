@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.1
+
+### Improvements and bugfixes
+
+* Improve the approach on fixing errors around paragraphs that have tags through
+  multiple `w:r` elements, by merging only `w:r` that have same styles.
+
 ## 2.0.0
 
 ### Breaking changes
