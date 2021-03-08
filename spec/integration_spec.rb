@@ -58,22 +58,26 @@ describe 'integration test', integration: true do
     end
 
     it 'fixes nested xml errors breaking tags' do
-      expect(document.send(:problem_paragraphs)).to_not be_empty
-      document.fix_errors
-      expect(document.send(:problem_paragraphs)).to be_empty
+      expect { document.fix_errors }.to change {
+        document.send(:problem_paragraphs).size
+      }.from(6).to(1)
+
+      expect(document.send(:problem_paragraphs).first.text).to eq(
+        '{{TAG123-\\-//WITH WE👻IRD CHARS}}'
+      )
     end
 
     it 'has the expected amount of usable tags' do
-      expect(document.usable_tags.count).to be(30)
+      expect(document.usable_tags.count).to eq(43)
     end
 
     it 'has the expected amount of usable roles tags' do
       document.fix_errors
-      expect(document.usable_role_tags.count).to be(6)
+      expect(document.usable_role_tags.count).to eq(6)
     end
 
     it 'has the expected amount of unique tag names' do
-      expect(document.usable_tag_names.count).to be(18)
+      expect(document.usable_tag_names.count).to eq(19)
     end
 
     it 'renders file using data' do
