@@ -1,7 +1,7 @@
 module LMDocstache
   class Document
     TAGS_REGEXP = /{{.+?}}/
-    ROLES_REGEXP = /(\{\{(sig|sigfirm|date|check|text|initial)\|(req|noreq)\|(.+?)\}\})/
+    ROLES_REGEXP = /({{(sig|sigfirm|date|check|text|initial)\|(req|noreq)\|(.+?)}})/
 
     def initialize(*paths)
       raise ArgumentError if paths.empty?
@@ -65,7 +65,7 @@ module LMDocstache
     end
 
     def fix_errors
-      problem_paragraphs.each { |p| flatten_paragraph(p) if p.present? }
+      problem_paragraphs.each { |pg| flatten_paragraph(pg) if pg }
     end
 
     def errors?
@@ -125,15 +125,21 @@ module LMDocstache
     end
 
     def flatten_paragraph(paragraph)
-      run_nodes = paragraph.css('w|r')
-      host_run_node = run_nodes.shift
+      return if (run_nodes = paragraph.css('w|r')).size < 2
 
-      until host_run_node.at_css('w|t') || run_nodes.size == 0
-        host_run_node = run_nodes.shift
-      end
+      while run_node = run_nodes.pop
+        next if run_nodes.empty?
 
-      run_nodes.each do |run_node|
-        host_run_node.at_css('w|t').content += run_node.text
+        style_node = run_node.at_css('w|rPr')
+        style_html = style_node ? style_node.inner_html : ''
+        previous_run_node = run_nodes.last
+        previous_style_node = previous_run_node.at_css('w|rPr')
+        previous_style_html = previous_style_node ? previous_style_node.inner_html : ''
+
+        next if style_html != previous_style_html
+
+        previous_text_node = previous_run_node.at_css('w|t')
+        previous_text_node.content = previous_text_node.text + run_node.text
         run_node.unlink
       end
     end
