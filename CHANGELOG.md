@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.2
+
+### Improvements and bugfixes
+
+* Fix a bug related to a bad empty text nodes handling approach inside
+  `Document#flatten_paragraph` logic.
+
 ## 2.0.1
 
 ### Improvements and bugfixes
