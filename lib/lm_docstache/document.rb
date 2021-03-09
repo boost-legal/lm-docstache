@@ -135,10 +135,12 @@ module LMDocstache
         previous_run_node = run_nodes.last
         previous_style_node = previous_run_node.at_css('w|rPr')
         previous_style_html = previous_style_node ? previous_style_node.inner_html : ''
+        previous_text_node = previous_run_node.at_css('w|t')
+        current_text_node = run_node.at_css('w|t')
 
         next if style_html != previous_style_html
+        next if current_text_node.nil? || previous_text_node.nil?
 
-        previous_text_node = previous_run_node.at_css('w|t')
         previous_text_node.content = previous_text_node.text + run_node.text
         run_node.unlink
       end
