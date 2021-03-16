@@ -8,6 +8,8 @@ module LMDocstache
       @hide_custom_tags = hide_custom_tags
     end
 
+    # Find all nodes matching hide custom tags and
+    # replace background to white.
     def hide_custom_tags!
       hide_custom_tags.each do |full_pattern|
         paragraphs = document.css('w|p')
@@ -22,11 +24,11 @@ module LMDocstache
             tag_contents[:content_list].each_with_index do |content, idx|
               replace_content(remainder_run_node, content)
               run_node_with_match = remainder_run_node.dup
-              matched_tags = tag_contents[:matched_tags][idx]
+              matched_tag = tag_contents[:matched_tags][idx]
               nodes_list = [remainder_run_node]
-              if matched_tags
+              if matched_tag
                 replace_style(run_node_with_match)
-                replace_content(run_node_with_match, matched_tags)
+                replace_content(run_node_with_match, matched_tag)
                 nodes_list << run_node_with_match
               end
               paragraph << Nokogiri::XML::NodeSet.new(document, nodes_list)
@@ -47,9 +49,9 @@ module LMDocstache
 
     def replace_style(run_node)
       style = run_node.at_css('w|rPr')
-      w_color = style.at_css('w|color')
-      w_color.unlink if w_color
       if style
+        w_color = style.at_css('w|color')
+        w_color.unlink if w_color
         style << "<w:color w:val=\"#{HIDE_BACKGROUND_COLOR}\"/>"
       else
         run_node << "<w:rPr><w:color w:val=\"#{HIDE_BACKGROUND_COLOR}\"/></w:rPr>"
