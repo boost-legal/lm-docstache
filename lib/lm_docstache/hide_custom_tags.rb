@@ -1,6 +1,6 @@
 module LMDocstache
   class HideCustomTags
-    HIDE_BACKGROUND_COLOR = 'FFFFFF'
+    HIDDEN_FONT_COLOR = 'FFFFFF'
 
     attr_reader :document, :hide_custom_tags
 
@@ -9,14 +9,14 @@ module LMDocstache
     #
     # You have to remember is not acceptable to have capture groups in your +Regexp's+.
     # We don't accept because we need to find all parts of your text, split it in multiple runs
-    # and add a white background to matching custom tags.
+    # and add a white font color to matching custom tags.
     def initialize(document:, hide_custom_tags: [])
       @document = document
       @hide_custom_tags = hide_custom_tags
     end
 
     # Find all nodes matching hide custom tags and
-    # replace background to white.
+    # replace font color to white.
     def hide_custom_tags!
       hide_custom_tags.each do |full_pattern|
         paragraphs = document.css('w|p')
@@ -59,9 +59,9 @@ module LMDocstache
       if style
         w_color = style.at_css('w|color')
         w_color.unlink if w_color
-        style << "<w:color w:val=\"#{HIDE_BACKGROUND_COLOR}\"/>"
+        style << "<w:color w:val=\"#{HIDDEN_FONT_COLOR}\"/>"
       else
-        run_node << "<w:rPr><w:color w:val=\"#{HIDE_BACKGROUND_COLOR}\"/></w:rPr>"
+        run_node << "<w:rPr><w:color w:val=\"#{HIDDEN_FONT_COLOR}\"/></w:rPr>"
       end
     end
 

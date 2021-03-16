@@ -39,7 +39,7 @@ module LMDocstache
     #
     # You have to remember is not acceptable to have capture groups in your +Regexp's+.
     # We don't accept because we need to find all parts of your text, split it in multiple runs
-    # and add a white background to matching custom tags.
+    # and add a white font color to matching custom tags.
     def initialize(document, data, options = {})
       @document = document
       @data = data.transform_keys(&:to_s)
