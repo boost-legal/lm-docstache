@@ -5,7 +5,7 @@ module LMDocstache
     attr_reader :document, :hide_custom_tags
 
     # The +hide_custom_tags+ options is an +Array+ of +Regexp+ or +String+ representing
-    # the pattern you expect to keep at the document but with white background.
+    # the pattern you expect to keep at the document but with white font color.
     #
     # You have to remember is not acceptable to have capture groups in your +Regexp's+.
     # We don't accept because we need to find all parts of your text, split it in multiple runs
@@ -15,8 +15,8 @@ module LMDocstache
       @hide_custom_tags = hide_custom_tags
     end
 
-    # Find all nodes matching hide custom tags and
-    # replace font color to white.
+    # Find all run nodes matching hide custom tags +Regexp's+ options you defined, split it
+    # in multiple runs and replace font color to white in the matching tag run node.
     def hide_custom_tags!
       hide_custom_tags.each do |full_pattern|
         paragraphs = document.css('w|p')

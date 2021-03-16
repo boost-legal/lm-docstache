@@ -35,7 +35,7 @@ module LMDocstache
     #   will be the value that will replace the matched string
     #
     # The +hide_custom_tags+ options is an +Array+ of +Regexp+ or +String+ representing
-    # the pattern you expect to keep at the document but with white background.
+    # the pattern you expect to keep at the document but with white font color.
     #
     # You have to remember is not acceptable to have capture groups in your +Regexp's+.
     # We don't accept because we need to find all parts of your text, split it in multiple runs
