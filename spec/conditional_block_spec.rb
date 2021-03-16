@@ -24,9 +24,7 @@ describe LMDocstache::Renderer do
   def render_docx(doc_text)
     # create doc from blank
     blank_doc.render_replace(temp_file, doc_text)
-
-    doc = LMDocstache::Document.new(temp_file).render_file(result_file, data)
-
+    LMDocstache::Document.new(temp_file).render_file(result_file, data)
     result_doc = LMDocstache::Document.new(result_file).render_xml(data)
     result_doc["word/document.xml"].text
   end

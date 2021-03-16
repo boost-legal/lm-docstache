@@ -93,8 +93,8 @@ module LMDocstache
       buffer.sysread
     end
 
-    def render_xml(data = {})
-      render_documents(data)
+    def render_xml(data = {}, render_options = {})
+      render_documents(data, nil, render_options)
     end
 
     private

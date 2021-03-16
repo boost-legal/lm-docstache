@@ -33,18 +33,17 @@ module LMDocstache
 end
 
 describe 'integration test', integration: true do
-  let(:data) { LMDocstache::TestData::DATA }
   let(:base_path) { SPEC_BASE_PATH.join('example_input') }
-  let(:input_file) { "#{base_path}/ExampleTemplate.docx" }
   let(:output_dir) { "#{base_path}/tmp" }
-  let(:output_file) { "#{output_dir}/IntegrationTestOutput.docx" }
-  let(:document) { LMDocstache::Document.new(input_file) }
-  before do
-    FileUtils.rm_rf(output_dir) if File.exist?(output_dir)
-    Dir.mkdir(output_dir)
-  end
-
   context 'should process that incoming docx' do
+    let(:data) { LMDocstache::TestData::DATA }
+    let(:input_file) { "#{base_path}/ExampleTemplate.docx" }
+    let(:output_file) { "#{output_dir}/IntegrationTestOutput.docx" }
+    let(:document) { LMDocstache::Document.new(input_file) }
+    before do
+      FileUtils.rm_rf(output_dir) if File.exist?(output_dir)
+      Dir.mkdir(output_dir)
+    end
     it 'loads the input file' do
       expect(document).to_not be_nil
     end
@@ -82,6 +81,35 @@ describe 'integration test', integration: true do
 
     it 'renders file using data' do
       document.render_file(output_file, data)
+    end
+  end
+  context "testing hide custom tags" do
+    before do
+      FileUtils.rm_rf(output_dir) if File.exist?(output_dir)
+      Dir.mkdir(output_dir)
+    end
+
+    let(:input_file) { "#{base_path}/sample-signature.docx" }
+    let(:render_options) {
+      {
+        hide_custom_tags: ['(?:sig|sigfirm|date|check|text|initial)\|(?:req|noreq)\\|.+?']
+      }
+    }
+    let(:document) { LMDocstache::Document.new(input_file) }
+    it 'should have content replacement aligned with hide custom tags' do
+      doc = document
+      doc.fix_errors
+      noko = doc.render_xml({}, render_options)
+      output = noko['word/document.xml'].to_xml
+      expect(output).to include('<w:r>
+        <w:rPr>
+          <w:rFonts w:cstheme="minorHAnsi"/>
+          <w:lang w:val="en-US"/>
+          <w:color w:val="FFFFFF"/>
+        </w:rPr>
+        <w:t xml:space="preserve">{{sig|req|client}}</w:t>
+      </w:r>')
+      expect(output).to include('<w:t xml:space="preserve">Test Multiple text in the same line </w:t>')
     end
   end
 end

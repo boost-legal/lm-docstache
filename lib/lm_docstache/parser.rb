@@ -17,7 +17,7 @@ module LMDocstache
     BLOCK_MATCHER = /#{BLOCK_PATTERN}/
     VARIABLE_MATCHER = /{{([^#\^\/].*?)}}/
 
-    attr_reader :document, :data, :blocks, :special_variable_replacements
+    attr_reader :document, :data, :blocks, :special_variable_replacements, :hide_custom_tags
 
     # The +special_variable_replacements+ option is a +Hash+ where the key is
     # expected to be either a +Regexp+ or a +String+ representing the pattern
@@ -34,13 +34,21 @@ module LMDocstache
     # * any other value that will be turned into a string -> in this case, this
     #   will be the value that will replace the matched string
     #
+    # The +hide_custom_tags+ options is an +Array+ of +Regexp+ or +String+ representing
+    # the pattern you expect to keep at the document but with white background.
     def initialize(document, data, options = {})
       @document = document
       @data = data.transform_keys(&:to_s)
       @special_variable_replacements = options.fetch(:special_variable_replacements, {})
+      @hide_custom_tags = load_hide_custom_tags(options)
+    end
+
+    def load_hide_custom_tags(options)
+      options.fetch(:hide_custom_tags, []).map {|regexp_str| regexp_str.is_a?(String) ? Regexp.new("{{#{regexp_str}}}") : /{{#{regexp_str.source}}/ }
     end
 
     def parse_and_update_document!
+      hide_custom_tags!
       find_blocks
       replace_conditional_blocks_in_document!
       replace_variables_in_document!
@@ -81,6 +89,11 @@ module LMDocstache
       @blocks
     end
 
+    def hide_custom_tags!
+      custom_tags = HideCustomTags.new(document: document, hide_custom_tags: hide_custom_tags)
+      custom_tags.hide_custom_tags!
+    end
+
     # Evaluates all conditional blocks inside the given XML document and keep or
     # remove their content inside the document, depending on the truthiness of
     # the condition on each given conditional block.
@@ -115,6 +128,9 @@ module LMDocstache
     end
 
     def has_skippable_variable?(text)
+      hide_custom_tags.select do |pattern|
+        text =~ pattern
+      end.size > 0 ||
       !!special_variable_replacements.find do |(pattern, value)|
         pattern = pattern.is_a?(String) ? /{{#{pattern}}}/ : /{{#{pattern.source}}}/
         text =~ pattern && value == false
