@@ -48,7 +48,9 @@ module LMDocstache
     end
 
     def load_hide_custom_tags(options)
-      options.fetch(:hide_custom_tags, []).map {|regexp_str| regexp_str.is_a?(String) ? Regexp.new("{{#{regexp_str}}}") : /{{#{regexp_str.source}}/ }
+      options.fetch(:hide_custom_tags, []).map do |regexp_str|
+        regexp_str.is_a?(String) ? Regexp.new("{{#{regexp_str}}}") : /{{#{regexp_str.source}}/
+      end
     end
 
     def parse_and_update_document!

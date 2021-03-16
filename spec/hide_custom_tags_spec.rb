@@ -28,7 +28,7 @@ describe LMDocstache::HideCustomTags do
       run_nodes = d.css('w|p w|r')
       while run_node = run_nodes.shift
         if run_node.text =~ regexp_tag
-          expect(run_node.at_css('w|rPr w|color').first[1]).to eq(LMDocstache::HideCustomTags::HIDE_BACKGROUND_COLOR)
+          expect(run_node.at_css('w|rPr w|color').first[1]).to eq(LMDocstache::HideCustomTags::HIDDEN_FONT_COLOR)
         end
       end
     end
