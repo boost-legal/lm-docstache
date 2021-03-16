@@ -3,6 +3,13 @@ module LMDocstache
     HIDE_BACKGROUND_COLOR = 'FFFFFF'
 
     attr_reader :document, :hide_custom_tags
+
+    # The +hide_custom_tags+ options is an +Array+ of +Regexp+ or +String+ representing
+    # the pattern you expect to keep at the document but with white background.
+    #
+    # You have to remember is not acceptable to have capture groups in your +Regexp's+.
+    # We don't accept because we need to find all parts of your text, split it in multiple runs
+    # and add a white background to matching custom tags.
     def initialize(document:, hide_custom_tags: [])
       @document = document
       @hide_custom_tags = hide_custom_tags
