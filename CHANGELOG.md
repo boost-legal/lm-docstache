@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.1.0
+
+#### Improvements
+
+* Add new feature which you're able to "hide" matching RegExp rule with white font color.
+  This change allows you to keep your content and don't loose locations of hidden tags.
+  You can use it just adding `hide_custom_tags` list of RegExp options to `Document#render_file`.
+* Added `Document#render_xml` options parameter so you can call it with more documents
+  formatting possibilities.
+
 ## 2.0.2
 
 ### Improvements and bugfixes
