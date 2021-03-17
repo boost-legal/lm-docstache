@@ -1,7 +1,5 @@
 module LMDocstache
   class HideCustomTags
-    HIDDEN_FONT_COLOR = 'FFFFFF'
-
     attr_reader :document, :hide_custom_tags
 
     # The +hide_custom_tags+ options is an +Array+ of +Regexp+ or +String+ representing
@@ -9,14 +7,14 @@ module LMDocstache
     #
     # You have to remember is not acceptable to have capture groups in your +Regexp's+.
     # We don't accept because we need to find all parts of your text, split it in multiple runs
-    # and add a white font color to matching custom tags.
+    # and add document background color or white font color to matching custom tags.
     def initialize(document:, hide_custom_tags: [])
       @document = document
       @hide_custom_tags = hide_custom_tags
     end
 
     # Find all run nodes matching hide custom tags +Regexp's+ options you defined, split it
-    # in multiple runs and replace font color to white in the matching tag run node.
+    # in multiple runs and replace font color to document background color or white in the matching tag run node.
     def hide_custom_tags!
       hide_custom_tags.each do |full_pattern|
         paragraphs = document.css('w|p')
@@ -47,6 +45,11 @@ module LMDocstache
     end
 
     private
+
+    def font_color
+      @font_color ||= document.at_css('w|background')&.attr('w:color') || 'FFFFFF'
+    end
+
     def split_tag_content(text, full_pattern)
       content_list = text.split(full_pattern)
       content_list = content_list.empty? ? [''] : content_list
@@ -59,9 +62,9 @@ module LMDocstache
       if style
         w_color = style.at_css('w|color')
         w_color.unlink if w_color
-        style << "<w:color w:val=\"#{HIDDEN_FONT_COLOR}\"/>"
+        style << "<w:color w:val=\"#{font_color}\"/>"
       else
-        run_node << "<w:rPr><w:color w:val=\"#{HIDDEN_FONT_COLOR}\"/></w:rPr>"
+        run_node << "<w:rPr><w:color w:val=\"#{font_color}\"/></w:rPr>"
       end
     end
 
