@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.1
+
+### Improvements
+
+* Hidden custom tags now follow your document background color. If there is no background defined
+  we assume white font color.
+
 ## 2.1.0
 
 #### Improvements
