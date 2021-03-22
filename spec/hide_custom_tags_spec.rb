@@ -25,14 +25,14 @@ describe LMDocstache::HideCustomTags do
     context "giving a document with blue background" do
       let(:input_file) { "#{base_path}/sample-signature-blue.docx" }
 
-      it 'expect to have a blue color on all hide custom tags matching and have rPr before text' do
+      it 'expect to have a white color on all hide custom tags matching and have first child node equal rPr tag' do
         hide_custom_tags.hide_custom_tags!
         d = hide_custom_tags.document
         run_nodes = d.css('w|p w|r')
         while run_node = run_nodes.shift
           if run_node.text =~ regexp_tag
             expect(run_node.at_css('w|rPr w|color').first[1]).to eq('4472C4')
-            expect(run_node.at_css('w|rPr').next_sibling.name).to eq('t')
+            expect(run_node.children.first.name).to eq('rPr')
           end
         end
       end
@@ -41,14 +41,14 @@ describe LMDocstache::HideCustomTags do
     context 'giving a document with white background' do
       let(:input_file) { "#{base_path}/sample-signature.docx" }
 
-      it 'expect to have a white color on all hide custom tags matching and have rPr before text' do
+      it 'expect to have a white color on all hide custom tags matching and have first child node equal rPr tag' do
         hide_custom_tags.hide_custom_tags!
         d = hide_custom_tags.document
         run_nodes = d.css('w|p w|r')
         while run_node = run_nodes.shift
           if run_node.text =~ regexp_tag
             expect(run_node.at_css('w|rPr w|color').first[1]).to eq('FFFFFF')
-            expect(run_node.at_css('w|rPr').next_sibling.name).to eq('t')
+            expect(run_node.children.first.name).to eq('rPr')
           end
         end
       end
@@ -56,14 +56,14 @@ describe LMDocstache::HideCustomTags do
     context 'giving a document without rpr' do
       let(:input_file) { "#{base_path}/docx-no-rpr.docx" }
 
-      it 'expect to have a white color on all hide custom tags matching' do
+      it 'expect to have a white color on all hide custom tags matching and have first child node equal rPr tag' do
         hide_custom_tags.hide_custom_tags!
         d = hide_custom_tags.document
         run_nodes = d.css('w|p w|r')
         while run_node = run_nodes.shift
           if run_node.text =~ regexp_tag
             expect(run_node.at_css('w|rPr w|color').first[1]).to eq('FFFFFF')
-            expect(run_node.at_css('w|rPr').next_sibling.name).to eq('t')
+            expect(run_node.children.first.name).to eq('rPr')
           end
         end
       end
