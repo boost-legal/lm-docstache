@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.2
+
+### Bugfix
+
+* Giving a document there is no *rPr* tag we should add new *rPr* tag before 
+  *t* tag.
+
 ## 2.1.1
 
 ### Improvements

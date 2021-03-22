@@ -64,7 +64,8 @@ module LMDocstache
         w_color.unlink if w_color
         style << "<w:color w:val=\"#{font_color}\"/>"
       else
-        run_node << "<w:rPr><w:color w:val=\"#{font_color}\"/></w:rPr>"
+        text_node = run_node.at_css('w|t')
+        text_node.add_previous_sibling("<w:rPr><w:color w:val=\"#{font_color}\"/></w:rPr>") if text_node
       end
     end
 
