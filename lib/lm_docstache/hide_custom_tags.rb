@@ -2,21 +2,27 @@ module LMDocstache
   class HideCustomTags
     attr_reader :document, :hide_custom_tags
 
-    # The +hide_custom_tags+ options is an +Array+ of +Regexp+ or +String+ representing
-    # the pattern you expect to keep at the document but with white font color.
+    # The +hide_custom_tags+ options is a +Hash+ of +Regexp+ or +String+ keys representing
+    # the pattern you expect to keep at the document but replacing the content to use
+    # font color equal to document background color or white.
+    # For the +Hash+ values we can have:
     #
-    # You have to remember is not acceptable to have capture groups in your +Regexp's+.
-    # We don't accept because we need to find all parts of your text, split it in multiple runs
-    # and add document background color or white font color to matching custom tags.
-    def initialize(document:, hide_custom_tags: [])
+    # * +false+ -> In this case we don't change the text content.
+    # * +Proc+ -> When a +Proc+ instance is provided, it's expected it to be
+    #   able to receive the matched string and to return the string that will be
+    #   used as replacement.
+    # * any other value that will be turned into a string -> in this case, this
+    #   will be the value that will replace the matched string
+    def initialize(document:, hide_custom_tags: {})
       @document = document
       @hide_custom_tags = hide_custom_tags
     end
 
     # Find all run nodes matching hide custom tags +Regexp's+ options you defined, split it
     # in multiple runs and replace font color to document background color or white in the matching tag run node.
+    # Replace content if you have defined any replacement value.
     def hide_custom_tags!
-      hide_custom_tags.each do |full_pattern|
+      hide_custom_tags.each do |full_pattern, value|
         paragraphs = document.css('w|p')
         while paragraph = paragraphs.shift do
           next unless paragraph.text =~ full_pattern
@@ -33,7 +39,13 @@ module LMDocstache
               nodes_list = [remainder_run_node]
               if matched_tag
                 replace_style(run_node_with_match)
-                replace_content(run_node_with_match, matched_tag)
+                matched_content = matched_tag
+                if value
+                  matched_content = value.is_a?(Proc) ?
+                       value.call(matched_tag) :
+                       value.to_s
+                end
+                replace_content(run_node_with_match, matched_content)
                 nodes_list << run_node_with_match
               end
               paragraph << Nokogiri::XML::NodeSet.new(document, nodes_list)

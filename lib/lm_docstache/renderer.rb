@@ -6,7 +6,8 @@ module LMDocstache
 
     def initialize(xml, data, options = {})
       @content = xml
-      @parser = Parser.new(xml, data, options.slice(:special_variable_replacements, :hide_custom_tags))
+      option_types = [:special_variable_replacements, :hide_custom_tags]
+      @parser = Parser.new(xml, data, options.slice(*option_types))
     end
 
     def render

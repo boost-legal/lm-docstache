@@ -1,6 +1,11 @@
 # Changelog
 
-## 2.1.2
+## 3.0.0
+
+## Breaking Changes
+* Replaced Renderer `hide_custom_tags` options to be a `Hash` instead of `Array`.
+  There are are edge cases which we want to replace the content on hide custom tags.
+  All documentations can be followed on `Renderer` and `HideCustomTag` classes.
 
 ### Bugfix
 

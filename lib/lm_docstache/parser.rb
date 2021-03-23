@@ -34,22 +34,30 @@ module LMDocstache
     # * any other value that will be turned into a string -> in this case, this
     #   will be the value that will replace the matched string
     #
-    # The +hide_custom_tags+ options is an +Array+ of +Regexp+ or +String+ representing
-    # the pattern you expect to keep at the document but with white font color.
+    # The +hide_custom_tags+ options is a +Hash+ of +Regexp+ or +String+ keys representing
+    # the pattern you expect to keep at the document but replacing the content to use
+    # font color equal to document background color or white.
+    # For the +Hash+ values we can have:
     #
-    # You have to remember is not acceptable to have capture groups in your +Regexp's+.
-    # We don't accept because we need to find all parts of your text, split it in multiple runs
-    # and add document background color or white font color to matching custom tags.
+    # * +false+ -> In this case we don't change the text content.
+    # * +Proc+ -> When a +Proc+ instance is provided, it's expected it to be
+    #   able to receive the matched string and to return the string that will be
+    #   used as replacement.
+    # * any other value that will be turned into a string -> in this case, this
+    #   will be the value that will replace the matched string
     def initialize(document, data, options = {})
       @document = document
       @data = data.transform_keys(&:to_s)
-      @special_variable_replacements = options.fetch(:special_variable_replacements, {})
-      @hide_custom_tags = load_hide_custom_tags(options)
+      @special_variable_replacements = add_blocks_to_regexp(options.fetch(:special_variable_replacements, {}))
+      @hide_custom_tags = add_blocks_to_regexp(options.fetch(:hide_custom_tags, {}))
     end
 
-    def load_hide_custom_tags(options)
-      options.fetch(:hide_custom_tags, []).map do |regexp_str|
-        regexp_str.is_a?(String) ? Regexp.new("{{#{regexp_str}}}") : /{{#{regexp_str.source}}/
+    # Replace +Regepx+ or +String+ keys to have the enclosing blocks
+    def add_blocks_to_regexp(options)
+      options.inject({}) do |x, (regexp_str, value)|
+        key = regexp_str.is_a?(String) ? Regexp.new("{{#{regexp_str}}}") : /{{#{regexp_str.source}}/
+        x[key] = value
+        x
       end
     end
 
@@ -128,15 +136,13 @@ module LMDocstache
             variable_replacement.call($1) :
             variable_replacement.to_s
         end
-
         text_node.content = text
       end
     end
 
     def has_skippable_variable?(text)
-      return true if hide_custom_tags.find { |pattern| text =~ pattern }
+      return true if hide_custom_tags.find { |(pattern, value)| text =~ pattern }
       !!special_variable_replacements.find do |(pattern, value)|
-        pattern = pattern.is_a?(String) ? /{{#{pattern}}}/ : /{{#{pattern.source}}}/
         text =~ pattern && value == false
       end
     end
@@ -144,7 +150,6 @@ module LMDocstache
     def special_variable_replacement(text)
       Array(
         special_variable_replacements.find do |(pattern, value)|
-          pattern = pattern.is_a?(String) ? /{{#{pattern}}}/ : /{{#{pattern.source}}}/
           text =~ pattern && !!value
         end
       ).last
