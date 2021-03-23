@@ -7,6 +7,8 @@
   There are are edge cases which we want to replace the content on hide custom tags.
   All documentations can be followed on `Renderer` and `HideCustomTag` classes.
 
+## 2.1.2
+
 ### Bugfix
 
 * Giving a document there is no *rPr* tag we should add new *rPr* tag before 
