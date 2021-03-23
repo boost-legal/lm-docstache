@@ -58,7 +58,7 @@ describe LMDocstache::HideCustomTags do
         end
       end
     end
-    context 'giving a document without rpr and blcok tags on the left' do
+    context 'giving a document without rpr and block tags on the left' do
       let(:input_file) { "#{base_path}/docx-no-rpr.docx" }
 
       it 'expect to have a white color on all hide custom tags matching and have first child node equal rPr tag' do
