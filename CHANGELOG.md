@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.1
+
+### Bugfix
+
+* Fix Hide Custom Tag feature when document there is no text inside a w|r we
+  can't split content.
+
 ## 3.0.0
 
 ## Breaking Changes

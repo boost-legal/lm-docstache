@@ -29,6 +29,7 @@ module LMDocstache
           run_nodes = paragraph.css('w|r')
           while run_node = run_nodes.shift
             next if run_node.text.to_s.strip.size == 0
+            next unless run_node.at_css('w|t')
             remainder_run_node = run_node.clone
             run_node.unlink
             tag_contents = split_tag_content(remainder_run_node.text, full_pattern)
