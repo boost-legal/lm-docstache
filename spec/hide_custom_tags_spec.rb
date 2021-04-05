@@ -85,5 +85,14 @@ describe LMDocstache::HideCustomTags do
         expect(total_replacement).to eq(2)
       end
     end
+
+    context 'giving a document with tabs spacing in the middle of replacement tags' do
+      let(:input_file) { "#{base_path}/sample-signature-with-tabs-spacing.docx" }
+      it 'expect to not replace tabs' do
+        hide_custom_tags.hide_custom_tags!
+        d = hide_custom_tags.document
+        expect(d.css('w|p w|tab').size).to eq(11)
+      end
+    end
   end
 end

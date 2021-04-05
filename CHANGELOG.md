@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.2
+
+### Bugfix
+
+* Don't replace tags are not related to hidden custom tags regexp formats. A good example are tabs, so we might not replace tabs in the content.
+
+
 ## 3.0.1
 
 ### Bugfix

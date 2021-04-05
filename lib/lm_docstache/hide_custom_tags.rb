@@ -28,17 +28,17 @@ module LMDocstache
           next unless paragraph.text =~ full_pattern
           run_nodes = paragraph.css('w|r')
           while run_node = run_nodes.shift
-            next if run_node.text.to_s.strip.size == 0
             next unless run_node.at_css('w|t')
+            # next unless run_node.text =~ full_pattern
             remainder_run_node = run_node.clone
             run_node.unlink
             tag_contents = split_tag_content(remainder_run_node.text, full_pattern)
             tag_contents[:content_list].each_with_index do |content, idx|
               replace_content(remainder_run_node, content)
-              run_node_with_match = remainder_run_node.dup
               matched_tag = tag_contents[:matched_tags][idx]
               nodes_list = [remainder_run_node]
               if matched_tag
+                run_node_with_match = remainder_run_node.dup
                 replace_style(run_node_with_match)
                 matched_content = matched_tag
                 if value
