@@ -4,7 +4,7 @@
 
 ### Bugfix
 
-* Don't replace tags are not related to hidden custom tags regexp formats. A good example are tabs, so we might not replace tabs in the content.
+* Fix replacing tags related to hidden custom tags regexp formats. E.g. tab characters.
 
 
 ## 3.0.1
