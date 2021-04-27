@@ -1,11 +1,18 @@
 # Changelog
 
+## 3.0.3
+
+### Bugfix
+
+* Hide custom tags arguments was pushing blocks tags to end of paragraph. There are cases this approach
+ doesn't work. I changed to be an ordered replacement when we match hide tags.
+* Avoid to merge Tab tags on fix errors methods. This was causing unexpected document changes.  
+
 ## 3.0.2
 
 ### Bugfix
 
 * Fix replacing tags related to hidden custom tags regexp formats. E.g. tab characters.
-
 
 ## 3.0.1
 
