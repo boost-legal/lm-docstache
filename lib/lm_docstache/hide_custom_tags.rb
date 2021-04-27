@@ -30,15 +30,15 @@ module LMDocstache
           while run_node = run_nodes.shift
             next unless run_node.at_css('w|t')
             next unless run_node.text =~ full_pattern
-            remainder_run_node = run_node.clone
-            run_node.unlink
-            tag_contents = split_tag_content(remainder_run_node.text, full_pattern)
+            tag_contents = split_tag_content(run_node.text, full_pattern)
+            replacement_nodes = []
             tag_contents[:content_list].each_with_index do |content, idx|
+              remainder_run_node = run_node.clone
               replace_content(remainder_run_node, content)
               matched_tag = tag_contents[:matched_tags][idx]
-              nodes_list = [remainder_run_node]
+              replacement_nodes << remainder_run_node
               if matched_tag
-                run_node_with_match = remainder_run_node.dup
+                run_node_with_match = run_node.clone
                 replace_style(run_node_with_match)
                 matched_content = matched_tag
                 if value
@@ -47,11 +47,11 @@ module LMDocstache
                        value.to_s
                 end
                 replace_content(run_node_with_match, matched_content)
-                nodes_list << run_node_with_match
+                replacement_nodes << run_node_with_match
               end
-              paragraph << Nokogiri::XML::NodeSet.new(document, nodes_list)
-              remainder_run_node = remainder_run_node.clone
             end
+            run_node.add_next_sibling(Nokogiri::XML::NodeSet.new(document, replacement_nodes))
+            run_node.unlink
           end
         end
       end

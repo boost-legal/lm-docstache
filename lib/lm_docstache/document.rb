@@ -138,6 +138,10 @@ module LMDocstache
         previous_text_node = previous_run_node.at_css('w|t')
         current_text_node = run_node.at_css('w|t')
 
+        # avoid to merge blocks with tabs
+        next if run_node.at_css('w|tab')
+        next if previous_run_node.at_css('w|tab')
+
         next if style_html != previous_style_html
         next if current_text_node.nil? || previous_text_node.nil?
 
