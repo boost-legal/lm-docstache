@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.4
+* Allow replacement `data` argument to be an `Array`. This feature allow to replace blocks
+in a sequentially order following the sequence of matching blocks order.
+
 ## 3.0.3
 
 ### Bugfix
