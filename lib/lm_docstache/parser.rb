@@ -18,7 +18,22 @@ module LMDocstache
     VARIABLE_MATCHER = /{{([^#\^\/].*?)}}/
 
     attr_reader :document, :data, :blocks, :special_variable_replacements, :hide_custom_tags
+    attr_reader :data_sequential_replacement
 
+    # Constructor +data+ argument is a +Hash+ where the key is
+    # expected to be a +String+ representing the replacement block value. +Hash+
+    # key must not contain the `{{}}` part, but only the pattern characters.
+    # As for the values of the +Hash+, we have options:
+    #
+    # * +String+  will be the value that will replace matching string.
+    # * +Array<String>+ will be an ordered sequence of values that will replace the matched string following
+    # document matching order.
+    #
+    # Example:
+    # { 'full_name' => 'John Doe', 'text|req|Client' => ['John', 'Matt', 'Paul'] }
+    #
+    # Constructor +options+ argument is a +Hash+ where keys can be:
+    #
     # The +special_variable_replacements+ option is a +Hash+ where the key is
     # expected to be either a +Regexp+ or a +String+ representing the pattern
     # of more specific type of variables that deserves a special treatment. The
@@ -47,7 +62,8 @@ module LMDocstache
     #   will be the value that will replace the matched string
     def initialize(document, data, options = {})
       @document = document
-      @data = data.transform_keys(&:to_s)
+      @data = data.transform_keys(&:to_s).select {|e, v| !v.is_a?(Array) }
+      @data_sequential_replacement = data.transform_keys(&:to_s).select {|e, v| v.is_a?(Array) }
       @special_variable_replacements = add_blocks_to_regexp(options.fetch(:special_variable_replacements, {}))
       @hide_custom_tags = add_blocks_to_regexp(options.fetch(:hide_custom_tags, {}))
     end
@@ -65,6 +81,7 @@ module LMDocstache
       hide_custom_tags!
       find_blocks
       replace_conditional_blocks_in_document!
+      replace_data_sequentially_in_document!
       replace_variables_in_document!
     end
 
@@ -137,6 +154,32 @@ module LMDocstache
             variable_replacement.to_s
         end
         text_node.content = text
+      end
+    end
+
+    def replace_data_sequentially_in_document!
+      data_sequential_replacement.each do |tag_key, values|
+
+        tag = Regexp.escape("{{#{tag_key}}}")
+        pattern_found = 0
+
+        document.css('w|t').each do |text_node|
+          text = text_node.text
+
+          if text.match(tag)
+
+            text.gsub!(/#{tag}/) do |_match|
+              value = values[pattern_found]
+              # if there is no more available value replace the content with empty string
+              return '' unless value
+
+              pattern_found +=1
+              value
+            end
+
+            text_node.content = text
+          end
+        end
       end
     end
 
