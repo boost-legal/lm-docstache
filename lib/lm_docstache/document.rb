@@ -1,5 +1,6 @@
 module LMDocstache
   class Document
+    GENERAL_TAG_REGEX = /\{\{[\/#^]?(.+?)(?:(\s((?:==|~=))\s?.+?))?\}\}/
     ROLES_REGEXP = /({{(sig|sigfirm|date|check|text|initial)\|(req|noreq)\|(.+?)}})/
     BLOCK_CHILDREN_ELEMENTS = 'w|r,w|hyperlink,w|ins,w|del'
     RUN_LIKE_ELEMENTS = 'w|r,w|ins'
@@ -52,10 +53,10 @@ module LMDocstache
 
     def usable_tag_names
       usable_tags.reduce([]) do |memo, tag|
-        next if tag.is_a?(Regexp) || tag =~ ROLES_REGEXP
+        next memo if tag.is_a?(Regexp) || tag =~ ROLES_REGEXP
 
         tag = tag.source if tag.is_a?(Regexp)
-        tag.scan(/\{\{[\/#^]?(.+?)(?:(\s((?:==|~=))\s?.+?))?\}\}/) && $1
+        memo << (tag.scan(GENERAL_TAG_REGEX) && $1)
       end.compact.uniq
     end
 
