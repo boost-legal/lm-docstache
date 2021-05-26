@@ -1,7 +1,8 @@
 module LMDocstache
   class Document
-    TAGS_REGEXP = /{{.+?}}/
     ROLES_REGEXP = /({{(sig|sigfirm|date|check|text|initial)\|(req|noreq)\|(.+?)}})/
+    BLOCK_CHILDREN_ELEMENTS = 'w|r,w|hyperlink,w|ins,w|del'
+    RUN_LIKE_ELEMENTS = 'w|r,w|ins'
 
     def initialize(*paths)
       raise ArgumentError if paths.empty?
@@ -34,22 +35,27 @@ module LMDocstache
 
     def tags
       @documents.values.flat_map do |document|
-        document.text.strip.scan(TAGS_REGEXP)
-      end
+        document_text = document.text
+        extract_tag_names(document_text) + extract_tag_names(document_text, true)
+      end.uniq
     end
 
     def usable_tags
       @documents.values.reduce([]) do |tags, document|
         document.css('w|t').reduce(tags) do |document_tags, text_node|
-          document_tags.push(*text_node.text.scan(TAGS_REGEXP))
+          text = text_node.text
+          document_tags.push(*extract_tag_names(text))
+          document_tags.push(*extract_tag_names(text, true))
         end
-      end
+      end.uniq
     end
 
     def usable_tag_names
-      usable_tags.reject { |tag| tag =~ ROLES_REGEXP }.map do |tag|
-        tag.scan(/\{\{[\/#^]?(.+?)(?:(\s((?:==|~=))\s?.+?))?\}\}/)
-        $1
+      usable_tags.reduce([]) do |memo, tag|
+        next if tag.is_a?(Regexp) || tag =~ ROLES_REGEXP
+
+        tag = tag.source if tag.is_a?(Regexp)
+        tag.scan(/\{\{[\/#^]?(.+?)(?:(\s((?:==|~=))\s?.+?))?\}\}/) && $1
       end.compact.uniq
     end
 
@@ -99,6 +105,16 @@ module LMDocstache
 
     private
 
+    def extract_tag_names(text, conditional_tag = false)
+      if conditional_tag
+        text.scan(Parser::BLOCK_MATCHER).map do |match|
+          /#{Parser::BLOCK_NAMED_START_PATTERN % { tag_name: match[1] }}/
+        end
+      else
+        text.strip.scan(Parser::VARIABLE_MATCHER).map { |match| "{{#{match[0]}}}" }
+      end
+    end
+
     def render_documents(data, text = nil, render_options = {})
       Hash[
         @documents.map do |(path, document)|
@@ -115,9 +131,10 @@ module LMDocstache
     def problem_paragraphs
       unusable_tags.flat_map do |tag|
         @documents.values.inject([]) do |tags, document|
-          faulty_paragraphs = document
-            .css('w|p')
-            .select { |paragraph| paragraph.text =~ /#{Regexp.escape(tag)}/ }
+          faulty_paragraphs = document.css('w|p').select do |paragraph|
+            tag_regex = tag.is_a?(Regexp) ? tag : /#{Regexp.escape(tag)}/
+            paragraph.text =~ tag_regex
+          end
 
           tags + faulty_paragraphs
         end
