@@ -71,7 +71,7 @@ module LMDocstache
     end
 
     def fix_errors
-      problem_paragraphs.each { |pg| flatten_paragraph(pg) if pg }
+      problem_paragraphs.each { |pg| flatten_text_blocks(pg) if pg }
     end
 
     def errors?
@@ -141,30 +141,36 @@ module LMDocstache
       end
     end
 
-    def flatten_paragraph(paragraph)
-      return if (run_nodes = paragraph.css('w|r')).size < 2
+    def flatten_text_blocks(runs_wrapper)
+      return if (children = filtered_children(runs_wrapper)).size < 2
 
-      while run_node = run_nodes.pop
-        next if run_nodes.empty?
+      while node = children.pop
+        is_run_node = node.matches?(RUN_LIKE_ELEMENTS)
+        previous_node = children.last
 
-        style_node = run_node.at_css('w|rPr')
+        if !is_run_node && filtered_children(node, RUN_LIKE_ELEMENTS).any?
+          next flatten_text_blocks(node)
+        end
+        next if !is_run_node || children.empty? || !previous_node.matches?(RUN_LIKE_ELEMENTS)
+        next if node.at_css('w|tab') || previous_node.at_css('w|tab')
+
+        style_node = node.at_css('w|rPr')
         style_html = style_node ? style_node.inner_html : ''
-        previous_run_node = run_nodes.last
-        previous_style_node = previous_run_node.at_css('w|rPr')
+        previous_style_node = previous_node.at_css('w|rPr')
         previous_style_html = previous_style_node ? previous_style_node.inner_html : ''
-        previous_text_node = previous_run_node.at_css('w|t')
-        current_text_node = run_node.at_css('w|t')
-
-        # avoid to merge blocks with tabs
-        next if run_node.at_css('w|tab')
-        next if previous_run_node.at_css('w|tab')
+        previous_text_node = previous_node.at_css('w|t')
+        current_text_node = node.at_css('w|t')
 
         next if style_html != previous_style_html
         next if current_text_node.nil? || previous_text_node.nil?
 
-        previous_text_node.content = previous_text_node.text + run_node.text
-        run_node.unlink
+        previous_text_node.content = previous_text_node.text + current_text_node.text
+        node.unlink
       end
+    end
+
+    def filtered_children(node, selector = BLOCK_CHILDREN_ELEMENTS)
+      Nokogiri::XML::NodeSet.new(node.document, node.children.filter(selector))
     end
 
     def unzip_read(zip, zip_path)
