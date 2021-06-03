@@ -38,7 +38,7 @@ module LMDocstache
       @documents.values.flat_map do |document|
         document_text = document.text
         extract_tag_names(document_text) + extract_tag_names(document_text, true)
-      end.uniq
+      end
     end
 
     def usable_tags
@@ -48,7 +48,7 @@ module LMDocstache
           document_tags.push(*extract_tag_names(text))
           document_tags.push(*extract_tag_names(text, true))
         end
-      end.uniq
+      end
     end
 
     def usable_tag_names
