@@ -61,14 +61,9 @@ module LMDocstache
     end
 
     def unusable_tags
-      unusable_tags = tags
-
-      usable_tags.each do |usable_tag|
-        index = unusable_tags.index(usable_tag)
-        unusable_tags.delete_at(index) if index
-      end
-
-      unusable_tags
+      # We're also removing the reamining conditional block tags because they
+      # are not considered inside the `fix_errors` logic.
+      (tags - usable_tags).reject { |tag| tag.is_a?(Regexp) }
     end
 
     def fix_errors
