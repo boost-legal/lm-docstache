@@ -6,8 +6,6 @@ module LMDocstache
     BLOCK_VALUE_PATTERN = '([^\}]+?)\s*'
     BLOCK_START_PATTERN = "{{#{BLOCK_TYPE_PATTERN}#{BLOCK_VARIABLE_PATTERN}"\
                           "#{BLOCK_OPERATOR_PATTERN}#{BLOCK_VALUE_PATTERN}}}"
-    BLOCK_NAMED_START_PATTERN = "{{#{BLOCK_TYPE_PATTERN}%{tag_name}"\
-                                "#{BLOCK_OPERATOR_PATTERN}#{BLOCK_VALUE_PATTERN}}}"
     BLOCK_CONTENT_PATTERN = '(.*?)'
     BLOCK_CLOSE_PATTERN = '{{/\s*\k<2>\s*}}'
     BLOCK_NAMED_CLOSE_PATTERN = '{{/\s*%{tag_name}\s*}}'
