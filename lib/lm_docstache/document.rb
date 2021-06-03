@@ -53,7 +53,7 @@ module LMDocstache
 
     def usable_tag_names
       usable_tags.reduce([]) do |memo, tag|
-        next memo if tag.is_a?(Regexp) || tag =~ ROLES_REGEXP
+        next memo if !tag.is_a?(Regexp) && tag =~ ROLES_REGEXP
 
         tag = tag.source if tag.is_a?(Regexp)
         memo << (tag.scan(GENERAL_TAG_REGEX) && $1)
