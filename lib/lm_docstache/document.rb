@@ -108,7 +108,7 @@ module LMDocstache
           /#{Regexp.escape(start_block_tag)}/
         end
       else
-        text.strip.scan(Parser::VARIABLE_MATCHER).map { |match| "{{#{match[0]}}}" }
+        text.scan(Parser::VARIABLE_MATCHER).map { |match| "{{#{match[0]}}}" }
       end
     end
 
