@@ -103,8 +103,9 @@ module LMDocstache
 
     def extract_tag_names(text, conditional_tag = false)
       if conditional_tag
-        text.scan(Parser::BLOCK_MATCHER).map do |match|
-          /{{#{match[0]}#{match[1]} #{match[2]} #{match[3]}}}/
+        text.scan(Parser::BLOCK_START_MATCHER).map do |match|
+          start_block_tag = "{{#{match[0]}#{match[1]} #{match[2]} #{match[3]}}}"
+          /#{Regexp.escape(start_block_tag)}/
         end
       else
         text.strip.scan(Parser::VARIABLE_MATCHER).map { |match| "{{#{match[0]}}}" }
