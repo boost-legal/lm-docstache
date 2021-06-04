@@ -1,5 +1,6 @@
 module LMDocstache
   class Document
+    WHOLE_BLOCK_START_REGEX = /^#{Parser::BLOCK_START_PATTERN}$/
     GENERAL_TAG_REGEX = /\{\{[\/#^]?(.+?)(?:(\s((?:==|~=))\s?.+?))?\}\}/
     ROLES_REGEXP = /({{(sig|sigfirm|date|check|text|initial)\|(req|noreq)\|(.+?)}})/
     BLOCK_CHILDREN_ELEMENTS = 'w|r,w|hyperlink,w|ins,w|del'
@@ -61,8 +62,18 @@ module LMDocstache
     end
 
     def unusable_tags
+      conditional_start_tags = text_nodes_containing_only_starting_conditionals.map(&:text)
+
       usable_tags.reduce(tags) do |broken_tags, usable_tag|
         broken_tags.delete_at(broken_tags.index(usable_tag)) && broken_tags
+      end.reject do |broken_tag|
+        operator = broken_tag.is_a?(Regexp) ? :=~ : :==
+        start_tags_index = conditional_start_tags.find_index do |start_tag|
+          broken_tag.send(operator, start_tag)
+        end
+
+        conditional_start_tags.delete_at(start_tags_index) if start_tags_index
+        !!start_tags_index
       end
     end
 
@@ -101,9 +112,17 @@ module LMDocstache
 
     private
 
+    def text_nodes_containing_only_starting_conditionals
+      @documents.values.flat_map do |document|
+        document.css('w|t').select do |paragraph|
+          paragraph.text =~ WHOLE_BLOCK_START_REGEX
+        end
+      end
+    end
+
     def extract_tag_names(text, conditional_tag = false)
       if conditional_tag
-        text.scan(Parser::BLOCK_START_MATCHER).map do |match|
+        text.scan(Parser::BLOCK_MATCHER).map do |match|
           start_block_tag = "{{#{match[0]}#{match[1]} #{match[2]} #{match[3]}}}"
           /#{Regexp.escape(start_block_tag)}/
         end
