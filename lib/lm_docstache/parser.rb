@@ -184,7 +184,8 @@ module LMDocstache
     end
 
     def has_skippable_variable?(text)
-      return true if hide_custom_tags.find { |(pattern, value)| text =~ pattern }
+      return true if hide_custom_tags.find { |(pattern, _)| text =~ pattern }
+
       !!special_variable_replacements.find do |(pattern, value)|
         text =~ pattern && value == false
       end

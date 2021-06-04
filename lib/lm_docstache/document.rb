@@ -1,7 +1,10 @@
 module LMDocstache
   class Document
-    TAGS_REGEXP = /{{.+?}}/
+    WHOLE_BLOCK_START_REGEX = /^#{Parser::BLOCK_START_PATTERN}$/
+    GENERAL_TAG_REGEX = /\{\{[\/#^]?(.+?)(?:(\s((?:==|~=))\s?.+?))?\}\}/
     ROLES_REGEXP = /({{(sig|sigfirm|date|check|text|initial)\|(req|noreq)\|(.+?)}})/
+    BLOCK_CHILDREN_ELEMENTS = 'w|r,w|hyperlink,w|ins,w|del'
+    RUN_LIKE_ELEMENTS = 'w|r,w|ins'
 
     def initialize(*paths)
       raise ArgumentError if paths.empty?
@@ -34,38 +37,48 @@ module LMDocstache
 
     def tags
       @documents.values.flat_map do |document|
-        document.text.strip.scan(TAGS_REGEXP)
+        document_text = document.text
+        extract_tag_names(document_text) + extract_tag_names(document_text, true)
       end
     end
 
     def usable_tags
       @documents.values.reduce([]) do |tags, document|
         document.css('w|t').reduce(tags) do |document_tags, text_node|
-          document_tags.push(*text_node.text.scan(TAGS_REGEXP))
+          text = text_node.text
+          document_tags.push(*extract_tag_names(text))
+          document_tags.push(*extract_tag_names(text, true))
         end
       end
     end
 
     def usable_tag_names
-      usable_tags.reject { |tag| tag =~ ROLES_REGEXP }.map do |tag|
-        tag.scan(/\{\{[\/#^]?(.+?)(?:(\s((?:==|~=))\s?.+?))?\}\}/)
-        $1
+      usable_tags.reduce([]) do |memo, tag|
+        next memo if !tag.is_a?(Regexp) && tag =~ ROLES_REGEXP
+
+        tag = tag.source if tag.is_a?(Regexp)
+        memo << (tag.scan(GENERAL_TAG_REGEX) && $1)
       end.compact.uniq
     end
 
     def unusable_tags
-      unusable_tags = tags
+      conditional_start_tags = text_nodes_containing_only_starting_conditionals.map(&:text)
 
-      usable_tags.each do |usable_tag|
-        index = unusable_tags.index(usable_tag)
-        unusable_tags.delete_at(index) if index
+      usable_tags.reduce(tags) do |broken_tags, usable_tag|
+        broken_tags.delete_at(broken_tags.index(usable_tag)) && broken_tags
+      end.reject do |broken_tag|
+        operator = broken_tag.is_a?(Regexp) ? :=~ : :==
+        start_tags_index = conditional_start_tags.find_index do |start_tag|
+          broken_tag.send(operator, start_tag)
+        end
+
+        conditional_start_tags.delete_at(start_tags_index) if start_tags_index
+        !!start_tags_index
       end
-
-      unusable_tags
     end
 
     def fix_errors
-      problem_paragraphs.each { |pg| flatten_paragraph(pg) if pg }
+      problem_paragraphs.each { |pg| flatten_text_blocks(pg) if pg }
     end
 
     def errors?
@@ -99,6 +112,25 @@ module LMDocstache
 
     private
 
+    def text_nodes_containing_only_starting_conditionals
+      @documents.values.flat_map do |document|
+        document.css('w|t').select do |paragraph|
+          paragraph.text =~ WHOLE_BLOCK_START_REGEX
+        end
+      end
+    end
+
+    def extract_tag_names(text, conditional_tag = false)
+      if conditional_tag
+        text.scan(Parser::BLOCK_MATCHER).map do |match|
+          start_block_tag = "{{#{match[0]}#{match[1]} #{match[2]} #{match[3]}}}"
+          /#{Regexp.escape(start_block_tag)}/
+        end
+      else
+        text.scan(Parser::VARIABLE_MATCHER).map { |match| "{{#{match[0]}}}" }
+      end
+    end
+
     def render_documents(data, text = nil, render_options = {})
       Hash[
         @documents.map do |(path, document)|
@@ -115,39 +147,46 @@ module LMDocstache
     def problem_paragraphs
       unusable_tags.flat_map do |tag|
         @documents.values.inject([]) do |tags, document|
-          faulty_paragraphs = document
-            .css('w|p')
-            .select { |paragraph| paragraph.text =~ /#{Regexp.escape(tag)}/ }
+          faulty_paragraphs = document.css('w|p').select do |paragraph|
+            tag_regex = tag.is_a?(Regexp) ? tag : /#{Regexp.escape(tag)}/
+            paragraph.text =~ tag_regex
+          end
 
           tags + faulty_paragraphs
         end
       end
     end
 
-    def flatten_paragraph(paragraph)
-      return if (run_nodes = paragraph.css('w|r')).size < 2
+    def flatten_text_blocks(runs_wrapper)
+      return if (children = filtered_children(runs_wrapper)).size < 2
 
-      while run_node = run_nodes.pop
-        next if run_nodes.empty?
+      while node = children.pop
+        is_run_node = node.matches?(RUN_LIKE_ELEMENTS)
+        previous_node = children.last
 
-        style_node = run_node.at_css('w|rPr')
+        if !is_run_node && filtered_children(node, RUN_LIKE_ELEMENTS).any?
+          next flatten_text_blocks(node)
+        end
+        next if !is_run_node || children.empty? || !previous_node.matches?(RUN_LIKE_ELEMENTS)
+        next if node.at_css('w|tab') || previous_node.at_css('w|tab')
+
+        style_node = node.at_css('w|rPr')
         style_html = style_node ? style_node.inner_html : ''
-        previous_run_node = run_nodes.last
-        previous_style_node = previous_run_node.at_css('w|rPr')
+        previous_style_node = previous_node.at_css('w|rPr')
         previous_style_html = previous_style_node ? previous_style_node.inner_html : ''
-        previous_text_node = previous_run_node.at_css('w|t')
-        current_text_node = run_node.at_css('w|t')
-
-        # avoid to merge blocks with tabs
-        next if run_node.at_css('w|tab')
-        next if previous_run_node.at_css('w|tab')
+        previous_text_node = previous_node.at_css('w|t')
+        current_text_node = node.at_css('w|t')
 
         next if style_html != previous_style_html
         next if current_text_node.nil? || previous_text_node.nil?
 
-        previous_text_node.content = previous_text_node.text + run_node.text
-        run_node.unlink
+        previous_text_node.content = previous_text_node.text + current_text_node.text
+        node.unlink
       end
+    end
+
+    def filtered_children(node, selector = BLOCK_CHILDREN_ELEMENTS)
+      Nokogiri::XML::NodeSet.new(node.document, node.children.filter(selector))
     end
 
     def unzip_read(zip, zip_path)
