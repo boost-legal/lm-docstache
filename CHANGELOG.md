@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.0.5
+
+#### Bug fixes and improvements
+
+* Improve the way broken tags are detected, making the algorithm wider in terms
+  detecting broken tags, specially if the broken tag is the opening part of
+  conditional tag blocks (which was being detected before these improvements).
+* Improve the way the paragraphs with "unusable" tags are traversed and have
+  their same-style texts merged (hence the "unusable" tags becoming usable). So,
+  from now, `w:hyperlink` elements, for instance, are properly processed as
+  well.
+
 ## 3.0.4
 * Allow replacement `data` argument to be an `Array`. This feature allow to replace blocks
 in a sequentially order following the sequence of matching blocks order.
