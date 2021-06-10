@@ -65,7 +65,9 @@ module LMDocstache
       conditional_start_tags = text_nodes_containing_only_starting_conditionals.map(&:text)
 
       usable_tags.reduce(tags) do |broken_tags, usable_tag|
-        broken_tags.delete_at(broken_tags.index(usable_tag)) && broken_tags
+        next broken_tags unless index = broken_tags.index(usable_tag)
+
+        broken_tags.delete_at(index) && broken_tags
       end.reject do |broken_tag|
         operator = broken_tag.is_a?(Regexp) ? :=~ : :==
         start_tags_index = conditional_start_tags.find_index do |start_tag|
