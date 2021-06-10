@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.6
+
+#### Bug fixes
+
+* Fix bug on `LMDocstache::Docstache#unusable_tags` method, where `nil` could be
+  passed to `broken_tags.deleted_at` call.
+
 ## 3.0.5
 
 #### Bug fixes and improvements
