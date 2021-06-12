@@ -56,7 +56,7 @@ module LMDocstache
       usable_tags.reduce([]) do |memo, tag|
         next memo if !tag.is_a?(Regexp) && tag =~ ROLES_REGEXP
 
-        tag = tag.source if tag.is_a?(Regexp)
+        tag = unescape_escaped_start_block(tag.source) if tag.is_a?(Regexp)
         memo << (tag.scan(GENERAL_TAG_REGEX) && $1)
       end.compact.uniq
     end
@@ -113,6 +113,15 @@ module LMDocstache
     end
 
     private
+
+    def unescape_escaped_start_block(regex_source_string)
+      regex_source_string
+        .gsub('\\{', '{')
+        .gsub('\\#', '#')
+        .gsub('\\}', '}')
+        .gsub('\\^', '^')
+        .gsub('\\ ', ' ')
+    end
 
     def text_nodes_containing_only_starting_conditionals
       @documents.values.flat_map do |document|
