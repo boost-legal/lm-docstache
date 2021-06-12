@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.7
+
+#### Bug fixes
+
+* Fix a bug on `usable_tag_names` method, so it now properly and expectedly
+  includes conditional tag names as well, as before.
+
 ## 3.0.6
 
 #### Bug fixes
