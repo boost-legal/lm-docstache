@@ -70,7 +70,7 @@ describe 'integration test', integration: true do
     end
 
     it 'has the expected amount of usable tags' do
-      expect(document.usable_tags.count).to eq(21)
+      expect(document.usable_tags.count).to eq(28)
     end
 
     it 'has the expected amount of usable roles tags' do
@@ -79,7 +79,7 @@ describe 'integration test', integration: true do
     end
 
     it 'has the expected amount of unique tag names' do
-      expect(document.usable_tag_names.count).to eq(14)
+      expect(document.usable_tag_names.count).to eq(20)
     end
 
     it 'renders file using data' do
