@@ -63,20 +63,10 @@ module LMDocstache
     end
 
     def unusable_tags
-      conditional_start_tags = text_nodes_containing_only_starting_conditionals.map(&:text)
-
       usable_tags.reduce(tags) do |broken_tags, usable_tag|
         next broken_tags unless index = broken_tags.index(usable_tag)
 
         broken_tags.delete_at(index) && broken_tags
-      end.reject do |broken_tag|
-        operator = broken_tag.is_a?(Regexp) ? :=~ : :==
-        start_tags_index = conditional_start_tags.find_index do |start_tag|
-          broken_tag.send(operator, start_tag)
-        end
-
-        conditional_start_tags.delete_at(start_tags_index) if start_tags_index
-        !!start_tags_index
       end
     end
 
@@ -122,14 +112,6 @@ module LMDocstache
         .gsub('\\}', '}')
         .gsub('\\^', '^')
         .gsub('\\ ', ' ')
-    end
-
-    def text_nodes_containing_only_starting_conditionals
-      @documents.values.flat_map do |document|
-        document.css('w|t').select do |text_node|
-          text_node.text =~ WHOLE_BLOCK_START_REGEX
-        end
-      end
     end
 
     def extract_tag_names(text, tag_type = :variable)
