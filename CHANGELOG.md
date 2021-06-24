@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.0.8
+
+#### Bug fixes
+
+* Fix a bug on `usable_tags` method, so it now properly and expectedly
+  includes conditional tag names that have its opening tag markup as the sole
+  content of paragraphs (which represents conditional blocks where both
+  opening and closing tags are in separate parapraghs sorrounding one or more
+  paragraphs as its conditional block content).
+
 ## 3.0.7
 
 #### Bug fixes

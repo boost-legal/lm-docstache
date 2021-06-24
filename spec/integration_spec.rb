@@ -70,7 +70,9 @@ describe 'integration test', integration: true do
     end
 
     it 'has the expected amount of usable tags' do
-      expect(document.usable_tags.count).to eq(28)
+      expect { document.fix_errors }.to change {
+        document.usable_tags.count
+      }.from(29).to(34)
     end
 
     it 'has the expected amount of usable roles tags' do
