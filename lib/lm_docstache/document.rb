@@ -125,8 +125,8 @@ module LMDocstache
 
     def text_nodes_containing_only_starting_conditionals
       @documents.values.flat_map do |document|
-        document.css('w|t').select do |paragraph|
-          paragraph.text =~ WHOLE_BLOCK_START_REGEX
+        document.css('w|t').select do |text_node|
+          text_node.text =~ WHOLE_BLOCK_START_REGEX
         end
       end
     end
