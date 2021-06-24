@@ -131,15 +131,17 @@ module LMDocstache
       end
     end
 
-    def extract_tag_names(text, conditional_tag = false)
-      if conditional_tag
-        text.scan(Parser::BLOCK_MATCHER).map do |match|
-          start_block_tag = "{{#{match[0]}#{match[1]} #{match[2]} #{match[3]}}}"
-          /#{Regexp.escape(start_block_tag)}/
+    def extract_tag_names(text, tag_type = :variable)
+      text, regex, extractor =
+        if tag_type == :variable
+          [text, Parser::VARIABLE_MATCHER, ->(match) { "{{%s}}" % match }]
+        else
+          extractor = ->(match) { /#{Regexp.escape("{{%s%s %s %s}}" % match)}/ }
+          tag_type == :full_block ? [text, Parser::BLOCK_MATCHER, extractor] :
+            [text.strip, WHOLE_BLOCK_START_REGEX, extractor]
         end
-      else
-        text.scan(Parser::VARIABLE_MATCHER).map { |match| "{{#{match[0]}}}" }
-      end
+
+      text.scan(regex).map(&extractor)
     end
 
     def render_documents(data, text = nil, render_options = {})
