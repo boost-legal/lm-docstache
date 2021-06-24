@@ -38,7 +38,7 @@ module LMDocstache
     def tags
       @documents.values.flat_map do |document|
         document_text = document.text
-        extract_tag_names(document_text) + extract_tag_names(document_text, true)
+        extract_tag_names(document_text) + extract_tag_names(document_text, :full_block)
       end
     end
 
@@ -47,7 +47,8 @@ module LMDocstache
         document.css('w|t').reduce(tags) do |document_tags, text_node|
           text = text_node.text
           document_tags.push(*extract_tag_names(text))
-          document_tags.push(*extract_tag_names(text, true))
+          document_tags.push(*extract_tag_names(text, :start_block))
+          document_tags.push(*extract_tag_names(text, :full_block))
         end
       end
     end
