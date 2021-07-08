@@ -1,3 +1,3 @@
 module LMDocstache
-  VERSION = "3.0.8"
+  VERSION = "3.0.9"
 end
