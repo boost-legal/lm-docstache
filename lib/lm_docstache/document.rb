@@ -6,6 +6,8 @@ module LMDocstache
     BLOCK_CHILDREN_ELEMENTS = 'w|r,w|hyperlink,w|ins,w|del'
     RUN_LIKE_ELEMENTS = 'w|r,w|ins'
 
+    attr_reader :document
+
     def initialize(*paths)
       raise ArgumentError if paths.empty?
 
@@ -172,11 +174,14 @@ module LMDocstache
         previous_style_html = previous_style_node ? previous_style_node.inner_html : ''
         previous_text_node = previous_node.at_css('w|t')
         current_text_node = node.at_css('w|t')
+        whitespace_attr = current_text_node['xml:space']
 
         next if style_html != previous_style_html
         next if current_text_node.nil? || previous_text_node.nil?
 
+        previous_text_node['xml:space'] = whitespace_attr if whitespace_attr
         previous_text_node.content = previous_text_node.text + current_text_node.text
+
         node.unlink
       end
     end

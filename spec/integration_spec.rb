@@ -62,7 +62,7 @@ describe 'integration test', integration: true do
     it 'fixes nested xml errors breaking tags' do
       expect { document.fix_errors }.to change {
         document.send(:problem_paragraphs).size
-      }.from(7).to(1)
+      }.from(10).to(1)
 
       expect(document.send(:problem_paragraphs).first.text).to eq(
         '{{TAG123-\\-//WITH WE👻IRD CHARS}}'
@@ -72,7 +72,16 @@ describe 'integration test', integration: true do
     it 'has the expected amount of usable tags' do
       expect { document.fix_errors }.to change {
         document.usable_tags.count
-      }.from(29).to(34)
+      }.from(29).to(37)
+    end
+
+    it 'keeps "xml:space" attribute when fixing errors' do
+      document.fix_errors
+
+      text_node = document.document.css('w|p').last
+        .css('w|t').find { |node| node.text.include?('that occurred on') }
+
+      expect(text_node['xml:space']).to eq('preserve')
     end
 
     it 'has the expected amount of usable roles tags' do
@@ -88,6 +97,7 @@ describe 'integration test', integration: true do
       document.render_file(output_file, data)
     end
   end
+
   context "testing hide custom tags" do
     before do
       FileUtils.rm_rf(output_dir) if File.exist?(output_dir)

@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.9
+
+#### Bug fixes
+
+* Text nodes merged in paragraphs with problems through `fix_errors` private
+  method have now the "xml:space" attribute preserved from now on.
+
 ## 3.0.8
 
 #### Bug fixes
