@@ -6,6 +6,8 @@ module LMDocstache
     BLOCK_CHILDREN_ELEMENTS = 'w|r,w|hyperlink,w|ins,w|del'
     RUN_LIKE_ELEMENTS = 'w|r,w|ins'
 
+    attr_reader :document
+
     def initialize(*paths)
       raise ArgumentError if paths.empty?
 
