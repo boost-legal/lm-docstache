@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.10
+
+#### Bug fixes
+
+* Only try to access and set text node's "xml:space" attribute if the text node
+  exists (in `LMDocstache::Document#flatten_text_blocks` private method).
+
 ## 3.0.9
 
 #### Bug fixes
