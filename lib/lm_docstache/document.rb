@@ -174,11 +174,11 @@ module LMDocstache
         previous_style_html = previous_style_node ? previous_style_node.inner_html : ''
         previous_text_node = previous_node.at_css('w|t')
         current_text_node = node.at_css('w|t')
-        whitespace_attr = current_text_node['xml:space']
 
         next if style_html != previous_style_html
         next if current_text_node.nil? || previous_text_node.nil?
 
+        whitespace_attr = current_text_node['xml:space']
         previous_text_node['xml:space'] = whitespace_attr if whitespace_attr
         previous_text_node.content = previous_text_node.text + current_text_node.text
 
