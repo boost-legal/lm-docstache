@@ -18,9 +18,8 @@ Gem::Specification.new do |s|
 
   # specify any dependencies here; for example:
   s.add_runtime_dependency 'nokogiri', '~> 1.6'
-  s.add_runtime_dependency 'rubyzip', '~> 1.1'
+  s.add_runtime_dependency 'rubyzip', '>= 2.3'
 
   s.add_development_dependency 'rspec', '~> 3.1', '>= 3.1.0'
-  s.add_development_dependency 'pry-byebug', '~> 1'
   s.add_development_dependency 'activesupport', '~> 3'
 end
