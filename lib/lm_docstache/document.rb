@@ -82,17 +82,17 @@ module LMDocstache
 
     def save(path = @path)
       buffer = zip_buffer(@documents)
-      File.open(path, "w") { |f| f.write buffer.string }
+      File.open(path, 'wb') { |f| f.write(buffer.string) }
     end
 
     def render_file(output, data = {}, render_options = {})
       buffer = zip_buffer(render_documents(data, nil, render_options))
-      File.open(output, "w") { |f| f.write buffer.string }
+      File.open(output, 'wb') { |f| f.write(buffer.string) }
     end
 
     def render_replace(output, text)
       buffer = zip_buffer(render_documents({}, text))
-      File.open(output, "w") { |f| f.write buffer.string }
+      File.open(output, 'wb') { |f| f.write(buffer.string) }
     end
 
     def render_stream(data = {})
