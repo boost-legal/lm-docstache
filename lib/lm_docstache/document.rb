@@ -187,7 +187,15 @@ module LMDocstache
     end
 
     def filtered_children(node, selector = BLOCK_CHILDREN_ELEMENTS)
-      Nokogiri::XML::NodeSet.new(node.document, node.children.filter(selector))
+      return Nokogiri::XML::NodeSet.new(nil) if node.nil? || node.document.nil?
+
+      safe_children = node.children.select do |child|
+        child&.document && child.matches?(selector)
+      rescue NoMethodError
+        false
+      end
+
+      Nokogiri::XML::NodeSet.new(node.document, safe_children)
     end
 
     def unzip_read(zip, zip_path)
