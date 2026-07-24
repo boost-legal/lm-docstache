@@ -143,12 +143,22 @@ module LMDocstache
     end
 
     def problem_paragraphs
-      unusable_tags.flat_map do |tag|
-        @documents.values.inject([]) do |tags, document|
-          faulty_paragraphs = document.css('w|p').select do |paragraph|
-            tag_regex = tag.is_a?(Regexp) ? tag : /#{Regexp.escape(tag)}/
-            paragraph.text =~ tag_regex
-          end
+      broken_tags = unusable_tags
+      return [] if broken_tags.empty?
+
+      # Serialize each paragraph once up front. Scanning per tag instead makes a
+      # template with many split tags cost one full rescan per broken tag.
+      scanned_documents = @documents.values.map do |document|
+        document.css('w|p').map { |paragraph| [paragraph, paragraph.text] }
+      end
+
+      broken_tags.flat_map do |tag|
+        tag_regex = tag.is_a?(Regexp) ? tag : /#{Regexp.escape(tag)}/
+
+        scanned_documents.inject([]) do |tags, scanned_paragraphs|
+          faulty_paragraphs = scanned_paragraphs
+            .select { |_paragraph, text| text =~ tag_regex }
+            .map(&:first)
 
           tags + faulty_paragraphs
         end
