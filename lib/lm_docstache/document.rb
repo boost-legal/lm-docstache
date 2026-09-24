@@ -77,7 +77,17 @@ module LMDocstache
     end
 
     def errors?
-      tags.length != usable_tags.length
+      # A document has errors when it holds a tag that no single text node can
+      # reconstruct -- i.e. a merge tag Word split across runs. That is exactly
+      # #unusable_tags, the same multiset difference #fix_errors repairs.
+      #
+      # Do NOT compare tags.length to usable_tags.length: #usable_tags walks w|t
+      # nodes and also extracts :start_block, a population #tags never counts, and
+      # neither collection dedupes. The two lengths are therefore not comparable --
+      # the difference can be non-zero on a cleanly flattened template that mixes
+      # conditional blocks (false positive), or even underflow on one mixing
+      # conditional blocks with split tags (false negative).
+      unusable_tags.any?
     end
 
     def save(path = @path)

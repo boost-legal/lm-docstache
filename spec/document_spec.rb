@@ -49,4 +49,29 @@ describe LMDocstache::Document do
       expect(serializations).to be <= paragraph_count
     end
   end
+
+  describe '#errors?' do
+    it 'is false when every tag is reconstructable, even if the tag counts differ' do
+      # A cleanly flattened template can still have tags.length != usable_tags.length:
+      # #usable_tags also extracts :start_block, a population #tags never counts, and
+      # neither collection dedupes. Comparing the two lengths reported such a clean
+      # document as broken; #errors? must follow #unusable_tags instead.
+      allow(document).to receive(:unusable_tags).and_return([])
+      allow(document).to receive(:tags).and_return(Array.new(5))
+      allow(document).to receive(:usable_tags).and_return(Array.new(7))
+
+      expect(document.errors?).to be(false)
+    end
+
+    it 'is true when a tag cannot be reconstructed from a single text node' do
+      allow(document).to receive(:unusable_tags).and_return(['{{split_tag}}'])
+
+      expect(document.errors?).to be(true)
+    end
+
+    it 'reports errors on a template whose merge tags Word split across runs' do
+      expect(document.errors?).to be(true)
+      expect(document.send(:unusable_tags)).not_to be_empty
+    end
+  end
 end

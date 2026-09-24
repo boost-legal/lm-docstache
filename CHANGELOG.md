@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.0.14
+
+#### Bug fixes
+
+* `LMDocstache::Document#errors?` now follows `#unusable_tags` instead of
+  comparing `tags.length` to `usable_tags.length`. The two counts are not
+  comparable: `#usable_tags` also extracts `:start_block`, a population
+  `#tags` never counts, and neither collection dedupes. That mismatch could
+  report a cleanly flattened template as broken (false positive) or miss a
+  document that mixes conditional blocks with a split tag (false negative).
+  `#unusable_tags` is the same multiset difference `#fix_errors` already
+  relies on to find broken tags.
+
 ## 3.0.13
 
 #### Performance
